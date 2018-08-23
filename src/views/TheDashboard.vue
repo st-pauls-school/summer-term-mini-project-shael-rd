@@ -1,27 +1,27 @@
 <template>
-  <div>
+    <div>
 
         <ul class='header-list'>
             <template v-if="!hasLoggedIn">
 
             <li>
-                    <router-link
+                <router-link
                   :to="{name: 'TheLogIn'}"
-                      v-bind:class="['header-list-item', {link_part_active: selectedOption === 0}]"
-                      v-on:click.native="selectedOption = 0"
-                      tag='li'>
+                  v-bind:class="['header-list-item', {link_part_active: selectedOption === 0}]"
+                  v-on:click.native="selectedOption = 0"
+                  tag='li'>
                     Log In
-                    </router-link>
+                </router-link>
             </li>
 
             <li>
-                    <router-link
+                <router-link
                   :to="{name: 'TheSignUp'}"
-                      v-bind:class="['header-list-item', {link_part_active: selectedOption === 1}]"
-                      v-on:click.native="selectedOption = 1"
-                      tag='li'>
+                  v-bind:class="['header-list-item', {link_part_active: selectedOption === 1}]"
+                  v-on:click.native="selectedOption = 1"
+                  tag='li'>
                     Sign Up
-                    </router-link>
+                </router-link>
             </li>
 
             </template>
@@ -32,7 +32,7 @@
             <TheSignUp v-if="selectedOption === 1 && !hasLoggedIn"/>
         </div>
 
-  </div>
+    </div>
 </template>
 
 <script>
