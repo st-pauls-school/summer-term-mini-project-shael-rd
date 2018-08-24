@@ -1,5 +1,87 @@
 <template>
     <div>
-        <h1>Log In!</h1>
+        <h1>Please enter your log in details below</h1>
+
+        <input
+          type='text'
+          ref='username_input'
+          placeholder="Username"
+          class='login-input'
+          v-model="userName">
+
+        <input
+          type='password'
+          ref='password_input'
+          placeholder="Password"
+          class='login-input'
+          v-model="userPassword">
+
+        <button
+          v-on:click="attemptLogin()"
+          id='login-button'>
+            Log In
+        </button>
+
+        <div
+          v-if="loginFailed"
+          id='login-failed-text'>
+            Invalid log in details. Please try again.
+        </div>
     </div>
 </template>
+
+<script>
+
+export default {
+  name: 'TheLogIn',
+
+  data () {
+    return {
+      loginFailed: false,
+      userPassword: '',
+      userName: ''
+    }
+  },
+
+  methods: {
+    attemptLogin: function () {
+      this.loginFailed = true
+      this.userPassword = ''
+      this.userName = ''
+    }
+  }
+}
+</script>
+
+<style scoped>
+  .login-input {
+    display: block;
+    margin-left: calc(50% - 150px);
+    margin-top: 20px;
+    width: 300px;
+    font-size: 16px;
+    height: 30px;
+  }
+
+  #login-button {
+    display: block;
+    margin-top: 20px;
+    margin-left: calc(50% - 100px);
+    width: 200px;
+    height: 50px;
+    font-size: 16px;
+    color: white;
+    background-color: #333;
+    cursor: pointer;
+  }
+  #login-button:hover {
+    background-color: #4CAF50;
+  }
+
+  #login-failed-text {
+    color: darkred;
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+</style>

@@ -27,7 +27,7 @@
             </template>
         </ul>
 
-        <div class='page-container'>
+        <div id='page-container'>
             <TheLogIn v-if="selectedOption === 0 && !hasLoggedIn"/>
             <TheSignUp v-if="selectedOption === 1 && !hasLoggedIn"/>
         </div>
@@ -75,7 +75,6 @@ export default {
     .header-list-item {
         padding: 14px 16px;
     }
-
     .header-list-item:hover:not(.link_part_active) {
         background-color: #111;
     }
