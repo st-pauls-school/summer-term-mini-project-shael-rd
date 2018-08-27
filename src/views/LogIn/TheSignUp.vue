@@ -71,24 +71,21 @@ export default {
       } else {
         var http = new XMLHttpRequest()
         var duplicateUsernameFlag = ''
+        var vm = this
+
         http.onreadystatechange = function () {
           if (this.readyState === 4 && this.status === 200) {
-            console.log(JSON.parse(this.responseText))
             duplicateUsernameFlag = JSON.parse(this.responseText)
+
+            if (duplicateUsernameFlag.result === 'yes') {
+              vm.signUpFailed = true
+              vm.errorMessage = 'Error! Username has already been taken.'
+            }
           }
-          console.log(this.readyState)
         }
 
         http.open('POST', 'http://localhost:3001/api/signup?q=' + this.userName, true)
         http.send()
-
-        if (duplicateUsernameFlag.result === 'yes') {
-          this.signUpFailed = true
-          this.errorMessage = 'Error! User name cannot be a duplicate.'
-        } else if (duplicateUsernameFlag.result === 'no') {
-          this.signUpFailed = true
-          this.errorMessage = 'Wow.. this worked!'
-        }
       }
     }
   }
