@@ -1,3 +1,4 @@
+const constants = require('./src/constants.js')
 const express = require('express')
 const url = require('url')
 const server = express()
@@ -12,6 +13,7 @@ server.use('/api', router)
 router.use((request, response, next) => {  
   let origin = request.headers.origin;
   console.log('Server info: Request received from' + origin);
+  console.log(constants.serverURL)
 
   // only allow requests from origins that we trust
   if (originWhitelist.indexOf(origin) > -1) {

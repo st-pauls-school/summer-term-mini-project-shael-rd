@@ -38,6 +38,7 @@
 </template>
 
 <script>
+import constants from '@/constants.js'
 
 export default {
   name: 'TheLogIn',
@@ -60,6 +61,8 @@ export default {
 
     attemptSignup: function () {
       this.signUpFailed = true
+
+      console.log(constants.serverURL)
 
       if (this.userPassword !== this.userConfirmPassword) {
         this.errorMessage = 'Error! Passwords do not match.'

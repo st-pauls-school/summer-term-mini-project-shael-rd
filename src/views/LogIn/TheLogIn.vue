@@ -25,7 +25,7 @@
         <div
           v-if="loginFailed"
           id='login-failed-text'>
-            Invalid log in details. Please try again.
+            {{errorMessage}}
         </div>
     </div>
 </template>
@@ -38,6 +38,7 @@ export default {
   data () {
     return {
       loginFailed: false,
+      errorMessage: '',
       userPassword: '',
       userName: ''
     }
@@ -46,8 +47,22 @@ export default {
   methods: {
     attemptLogin: function () {
       this.loginFailed = true
-      this.userPassword = ''
-      this.userName = ''
+
+      if (this.userName.length === 0) {
+        this.errorMessage = 'Please enter a username.'
+      } else if(this.userPassword.length === 0) {
+        this.errorMessage = 'Please enter a password.'
+      } else {
+        this.loginFailed = false
+
+        var http = new XMLHttpRequest()
+        var serverResponse = ''
+        var vm = this
+
+        http.onreadystatechange = function () {
+          
+        }
+      }
     }
   }
 }
