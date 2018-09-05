@@ -59,19 +59,23 @@ export default {
     },
 
     attemptSignup: function () {
+      this.signUpFailed = true
+
       if (this.userPassword !== this.userConfirmPassword) {
-        this.signUpFailed = true
         this.errorMessage = 'Error! Passwords do not match.'
       } else if (this.userPassword.length <= 5) {
-        this.signUpFailed = true
         this.errorMessage = 'Error! Password must be at least 5 characters long.'
       } else if (this.containsSpaces(this.userPassword)) {
-        this.signUpFailed = true
         this.errorMessage = 'Error! Password cannot contain spaces.'
+      } else if (this.containsSpaces(this.userName)) {
+        this.errorMessage = 'Error! Username cannot contain spaces.'
+      } else if (this.userName.length >= 15) {
+        this.errorMessage = 'Error! Username cannot be more than 15 characters long.'
       } else {
         var http = new XMLHttpRequest()
         var duplicateUsernameFlag = ''
         var vm = this
+        this.signUpFailed = false
 
         http.onreadystatechange = function () {
           if (this.readyState === 4 && this.status === 200) {
