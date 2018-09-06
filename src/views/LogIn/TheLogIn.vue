@@ -50,7 +50,7 @@ export default {
 
       if (this.userName.length === 0) {
         this.errorMessage = 'Please enter a username.'
-      } else if(this.userPassword.length === 0) {
+      } else if (this.userPassword.length === 0) {
         this.errorMessage = 'Please enter a password.'
       } else {
         this.loginFailed = false
@@ -60,9 +60,29 @@ export default {
         var vm = this
 
         http.onreadystatechange = function () {
-          
+          if (this.readyState === 4 && this.status === 200) {
+            serverResponse = JSON.parse(this.responseText)
+
+            if (serverResponse.result === 'yes') {
+              vm.loginSuccess()
+            } else if (serverResponse.result === 'no') {
+              console.log('YEET')
+              vm.loginFailed = true
+              vm.errorMessage = 'Error: invalid username or password.'
+            }
+          } else if (this.readyState === 4) {
+            vm.loginFailed = true
+            vm.errorMessage = 'Error connecting to server. Please try again later.'
+          }
         }
+
+        http.open('POST', 'http://localhost:3001/api/login?q=' + this.userName + '&r=' + this.userPassword, true)
+        http.send()
       }
+    },
+
+    loginSuccess: function () {
+      console.log('Successful login for user' + this.userName)
     }
   }
 }

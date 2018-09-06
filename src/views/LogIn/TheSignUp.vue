@@ -88,6 +88,9 @@ export default {
               vm.signUpFailed = true
               vm.errorMessage = 'Error! Username has already been taken.'
             }
+          } else if (this.readyState === 4) {
+            vm.signUpFailed = true
+            vm.errorMessage = 'Error! Failed to connect to server. Please try again later.'
           }
         }
 
