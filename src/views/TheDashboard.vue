@@ -4,31 +4,34 @@
         <ul class='header-list'>
             <template v-if="!hasLoggedIn">
 
-            <li>
-                <router-link
-                  :to="{name: 'TheLogIn'}"
-                  v-bind:class="['header-list-item', {link_part_active: selectedOption === 0}]"
-                  v-on:click.native="selectedOption = 0"
-                  tag='li'>
-                    Log In
-                </router-link>
-            </li>
+                <li>
+                    <router-link
+                      :to="{name: 'TheLogIn'}"
+                      v-bind:class="['header-list-item', {link_part_active: selectedOption === 0}]"
+                      v-on:click.native="selectedOption = 0"
+                      tag='li'>
+                        Log In
+                    </router-link>
+                </li>
 
-            <li>
-                <router-link
-                  :to="{name: 'TheSignUp'}"
-                  v-bind:class="['header-list-item', {link_part_active: selectedOption === 1}]"
-                  v-on:click.native="selectedOption = 1"
-                  tag='li'>
-                    Sign Up
-                </router-link>
-            </li>
+                <li>
+                    <router-link
+                      :to="{name: 'TheSignUp'}"
+                      v-bind:class="['header-list-item', {link_part_active: selectedOption === 1}]"
+                      v-on:click.native="selectedOption = 1"
+                      tag='li'>
+                        Sign Up
+                    </router-link>
+                </li>
+
+            </template>
+            <template v-if="hasLoggedIn">
 
             </template>
         </ul>
 
         <div id='page-container'>
-            <TheLogIn v-if="selectedOption === 0 && !hasLoggedIn"/>
+            <TheLogIn @loginSuccess="onLogin" v-if="selectedOption === 0 && !hasLoggedIn"/>
             <TheSignUp v-if="selectedOption === 1 && !hasLoggedIn"/>
         </div>
 
@@ -45,10 +48,20 @@ export default {
     TheLogIn,
     TheSignUp
   },
+
   data () {
     return {
       selectedOption: 0,
-      hasLoggedIn: false
+      hasLoggedIn: false,
+      username: ''
+    }
+  },
+
+  methods: {
+    onLogin: function (username) {
+      this.username = username
+      this.hasLoggedIn = true
+      console.log('Successfully accessed internal app with user' + username)
     }
   }
 }

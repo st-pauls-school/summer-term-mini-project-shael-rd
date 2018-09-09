@@ -31,6 +31,7 @@
 </template>
 
 <script>
+import constants from '@/constants.js'
 
 export default {
   name: 'TheLogIn',
@@ -66,7 +67,6 @@ export default {
             if (serverResponse.result === 'yes') {
               vm.loginSuccess()
             } else if (serverResponse.result === 'no') {
-              console.log('YEET')
               vm.loginFailed = true
               vm.errorMessage = 'Error: invalid username or password.'
             }
@@ -76,13 +76,14 @@ export default {
           }
         }
 
-        http.open('POST', 'http://localhost:3001/api/login?q=' + this.userName + '&r=' + this.userPassword, true)
+        http.open('POST', constants.serverURL + '/api/login?q=' + this.userName + '&r=' + this.userPassword, true)
         http.send()
       }
     },
 
     loginSuccess: function () {
-      console.log('Successful login for user' + this.userName)
+      console.log('Successful login for user: ' + this.userName)
+      this.$emit('loginSuccess', this.userName)
     }
   }
 }

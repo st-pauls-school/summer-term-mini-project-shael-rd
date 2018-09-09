@@ -3,7 +3,7 @@ const express = require('express')
 const url = require('url')
 const server = express()
 const router = express.Router()
-const port = 3001
+const port = constants.serverPort
 const originWhitelist = [constants.serverURL, constants.frontendURL]
 
 server.use('/api', router)
@@ -69,10 +69,10 @@ router.post('/login', (request, response) => {
 
   var mysql = require('mysql')
   var con = mysql.createConnection({
-    host: '127.0.0.1',
-    user: 'oscar',
-    password: 'password',
-    database: 'myDB'
+    host: constants.mySQLHost,
+    user: constants.mySQLUser,
+    password: constants.mySQLPassword,
+    database: constants.mySQLDatabase
   })
 
   var queryString = 'SELECT * FROM UserList WHERE username="'
