@@ -66,13 +66,13 @@ export default {
 
       if (this.userPassword !== this.userConfirmPassword) {
         this.errorMessage = 'Error! Passwords do not match.'
-      } else if (this.userPassword.length <= 5) {
+      } else if (this.userPassword.length < 5) {
         this.errorMessage = 'Error! Password must be at least 5 characters long.'
       } else if (this.containsSpaces(this.userPassword)) {
         this.errorMessage = 'Error! Password cannot contain spaces.'
       } else if (this.containsSpaces(this.userName)) {
         this.errorMessage = 'Error! Username cannot contain spaces.'
-      } else if (this.userName.length >= 15) {
+      } else if (this.userName.length > 15) {
         this.errorMessage = 'Error! Username cannot be more than 15 characters long.'
       } else {
         var http = new XMLHttpRequest()
@@ -87,6 +87,8 @@ export default {
             if (duplicateUsernameFlag.result === 'yes') {
               vm.signUpFailed = true
               vm.errorMessage = 'Error! Username has already been taken.'
+            } else if (duplicateUsernameFlag.result === 'no') {
+              vm.signUpSuccess()
             }
           } else if (this.readyState === 4) {
             vm.signUpFailed = true
@@ -94,9 +96,36 @@ export default {
           }
         }
 
-        http.open('POST', 'http://localhost:3001/api/signup?q=' + this.userName, true)
+        http.open('POST', constants.serverURL + '/api/signup?q=' + this.userName, true)
         http.send()
       }
+    },
+
+    signUpSuccess: function () {
+      var http = new XMLHttpRequest()
+      var response = ''
+      var vm = this
+
+      http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+          response = JSON.parse(this.responseText)
+
+          if (response.result === 'success') {
+            console.log('Successfully signed up with user: ' + vm.userName + ' password: ' + vm.userPassword)
+            vm.$emit('signupSuccess', vm.userName)
+          } else {
+            console.log('Failed to update database.')
+            vm.signUpFailed = true
+            vm.errorMessage = 'Failed to add new user to server. Please try again later.'
+          }
+        } else if (this.readyState === 4) {
+          vm.signUpFailed = true
+          vm.errorMessage = 'Failed to communicate with server. Please try again later.'
+        }
+      }
+
+      http.open('POST', constants.serverURL + '/api/signupnewuser?user=' + this.userName + '&pass=' + this.userPassword, true)
+      http.send()
     }
   }
 }

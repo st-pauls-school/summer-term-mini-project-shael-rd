@@ -32,7 +32,7 @@
 
         <div id='page-container'>
             <TheLogIn @loginSuccess="onLogin" v-if="selectedOption === 0 && !hasLoggedIn"/>
-            <TheSignUp v-if="selectedOption === 1 && !hasLoggedIn"/>
+            <TheSignUp @signupSuccess="onLogin" v-if="selectedOption === 1 && !hasLoggedIn"/>
         </div>
 
     </div>
@@ -61,7 +61,7 @@ export default {
     onLogin: function (username) {
       this.username = username
       this.hasLoggedIn = true
-      console.log('Successfully accessed internal app with user' + username)
+      console.log('Successfully accessed internal app with user: ' + username)
     }
   }
 }

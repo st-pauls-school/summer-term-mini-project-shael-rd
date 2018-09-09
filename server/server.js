@@ -101,4 +101,41 @@ router.post('/login', (request, response) => {
   })
 })
 
+router.post('/signupNewUser', (request, response) => {
+  console.log('\nRequest to add user received')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+
+  var mysql = require('mysql')
+  var con = mysql.createConnection({
+    host: constants.mySQLHost,
+    user: constants.mySQLUser,
+    password: constants.mySQLPassword,
+    database: constants.mySQLDatabase
+  })
+
+  var queryString = 'INSERT INTO UserList (username, password) VALUES ("'
+  queryString += parameters.user
+  queryString += '", "'
+  queryString += parameters.pass
+  queryString += '")'
+  console.log('Query String: ' + queryString)
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to insert values into database.')
+        return
+      }
+      response.json({result: 'success'})
+      console.log('Closing connection...')
+    })
+  })
+})
+
 server.listen(port, () => console.log('Listening on port ' + port))
