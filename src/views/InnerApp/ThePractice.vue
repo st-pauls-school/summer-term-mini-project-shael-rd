@@ -1,5 +1,22 @@
 <template>
     <div>
-        <h1>Practice!</h1>
+      <WritingCanvas/>
     </div>
 </template>
+
+<script>
+import WritingCanvas from '@/components/WritingCanvas'
+
+export default {
+  name: 'ThePractice',
+  components: {
+    WritingCanvas
+  },
+
+  data () {
+    return {
+      selectedOption: 0
+    }
+  }
+}
+</script>
