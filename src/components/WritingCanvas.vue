@@ -1,7 +1,24 @@
 <template>
     <div>
-        <canvas id="DrawingArea" width="300" height="150" style="border:1px solid #BBB;" v-on:mousemove="mouseIsDown ? mouseOnCanvas : 0"></canvas>
-        <h1>{{curLocation}}</h1>
+        <canvas
+          id="drawingArea"
+          width="500" height="300"
+          v-on:mousedown="toggleEventOn"
+          v-on:mouseup="toggleEventOff">
+        </canvas>
+        <div class="buttonDiv">
+            <button
+              class="drawingToolsButton"
+              v-bind:class="{rubberButtonOnClick: rubber === true}"
+              v-on:click="toggleRubber">
+                Rubber
+              </button>
+            <button
+              class="drawingToolsButton"
+              v-on:click="clearCanvas">
+                Clear
+            </button>
+        </div>
     </div>
 </template>
 
@@ -11,46 +28,114 @@ export default {
 
   data () {
     return {
-      points: [],
-      pointsCounter: 0,
-      mouseIsDown: false,
-      curLocation: ''
+      previousPos: 0,
+      newMousePress: true,
+      rubber: false,
+      canvas: 0,
+      ctx: 0
     }
+  },
+
+  mounted () {
+    this.canvas = document.getElementById('drawingArea')
+    this.ctx = this.canvas.getContext('2d')
   },
 
   methods: {
-    mouseOnCanvas: function (event) {
-      var canvas = document.getElementById('DrawingArea')
-      var ctx = canvas.getContext('2d')
-      var rect = canvas.getBoundingClientRect()
+    toggleEventOn: function (event) {
+      this.newMousePress = true
+      this.canvas.addEventListener('mousemove', this.drawOnCanvas)
+    },
+
+    toggleEventOff: function (event) {
+      this.canvas.removeEventListener('mousemove', this.drawOnCanvas)
+    },
+
+    toggleRubber: function (event) {
+      this.rubber = !this.rubber
+    },
+
+    drawOnCanvas: function (event) {
+      var rect = this.canvas.getBoundingClientRect()
       var mouseX = Math.floor(event.clientX - rect.left)
       var mouseY = Math.floor(event.clientY - rect.top)
 
-      this.points.push({x: mouseX, y: mouseY})
-      if (this.pointsCounter > 0) {
-        ctx.moveTo(this.points[this.pointsCounter - 1].x, this.points[this.pointsCounter - 1].y)
-        ctx.lineTo(this.points[this.pointsCounter].x, this.points[this.pointsCounter].y)
-        ctx.stroke()
+      if (!this.rubber) {
+        this.drawNewPoint(mouseX, mouseY)
+      } else {
+        this.eraseArea(mouseX, mouseY)
       }
-      this.pointsCounter++
-
-      this.curLocation = ''
-      this.curLocation += 'X: '
-      this.curLocation += event.clientX - rect.left
-      this.curLocation += ' Y: '
-      this.curLocation += event.clientY - rect.top
-    }
-  },
-
-  events: {
-    mouseIsPressed: function () {
-      console.log('oof1')
-      this.mouseIsDown = true
     },
-    mouseIsNotPressed: function () {
-      console.log('oof2')
-      this.mouseIsDown = false
+
+    drawNewPoint: function (mouseX, mouseY) {
+      if (this.newMousePress === false) {
+        this.ctx.beginPath()
+        this.ctx.moveTo(this.previousPos.x, this.previousPos.y)
+        this.ctx.lineTo(mouseX, mouseY)
+        this.ctx.strokeStyle = 'black'
+        this.ctx.stroke()
+        this.ctx.closePath()
+      } else {
+        this.newMousePress = false
+      }
+      this.previousPos = {x: mouseX, y: mouseY}
+    },
+
+    eraseArea: function (mouseX, mouseY) {
+      this.ctx.beginPath()
+      this.ctx.moveTo(mouseX, mouseY)
+      this.ctx.arc(mouseX, mouseY, 10, 0, 2 * Math.PI, false)
+      this.ctx.fillStyle = 'white'
+      this.ctx.fill()
+      this.ctx.closePath()
+    },
+
+    clearCanvas: function () {
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
     }
   }
 }
 </script>
+
+<style scoped>
+    #drawingArea {
+      border: 3px solid #333;
+      border-radius: 5px;
+    }
+    #drawingArea:hover {
+      border-color: #4CAF50;
+    }
+
+    .buttonDiv {
+      margin-left: calc(50% - 200px);
+      height: 90px;
+      width: 400px;
+    }
+
+    .drawingToolsButton {
+      display: block;
+      float: left;
+      width: 150px;
+      height: 60px;
+      margin-top: 15px;
+      font-size: 16px;
+      margin-left: 33px;
+
+      color: white;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      background-color: #333;
+    }
+    .drawingToolsButton:focus {
+      outline: none;
+    }
+    .drawingToolsButton:hover:not(.rubberButtonOnClick) {
+      background: #111;
+    }
+
+    .rubberButtonOnClick {
+      background-color: #4CAF50;
+    };
+
+</style>
