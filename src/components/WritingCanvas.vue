@@ -1,6 +1,10 @@
 <template>
     <div>
         <canvas
+          id="textArea"
+          width="500" height="300">
+        </canvas>
+        <canvas
           id="drawingArea"
           width="500" height="300"
           v-on:mousedown="toggleEventOn"
@@ -19,6 +23,7 @@
                 Clear
             </button>
         </div>
+        <h2>Oooooooof</h2>
     </div>
 </template>
 
@@ -32,13 +37,20 @@ export default {
       newMousePress: true,
       rubber: false,
       canvas: 0,
-      ctx: 0
+      ctx: 0,
+      textCanvas: 0,
+      textctx: 0
     }
   },
 
   mounted () {
     this.canvas = document.getElementById('drawingArea')
     this.ctx = this.canvas.getContext('2d')
+    this.textCanvas = document.getElementById('textArea')
+    this.textctx = this.textCanvas.getContext('2d')
+
+    this.textctx.font = '50px Cookie'
+    this.textctx.strokeText('Hello World', 10, 50)
   },
 
   methods: {
@@ -82,12 +94,16 @@ export default {
     },
 
     eraseArea: function (mouseX, mouseY) {
+      this.ctx.save()
+
       this.ctx.beginPath()
       this.ctx.moveTo(mouseX, mouseY)
       this.ctx.arc(mouseX, mouseY, 10, 0, 2 * Math.PI, false)
-      this.ctx.fillStyle = 'white'
-      this.ctx.fill()
       this.ctx.closePath()
+
+      this.ctx.clip()
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.ctx.restore()
     },
 
     clearCanvas: function () {
@@ -136,6 +152,16 @@ export default {
 
     .rubberButtonOnClick {
       background-color: #4CAF50;
-    };
+    }
 
+    canvas {
+      font-family: 'Cookie', Helvetica, sans-serif;
+      font-size: 50px;
+      color:darkgray;
+    }
+
+    #textArea {
+      position: absolute;
+      z-index: -1;
+    }
 </style>
