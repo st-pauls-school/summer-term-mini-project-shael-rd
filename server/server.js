@@ -26,11 +26,7 @@ router.use((request, response, next) => {
   next();
 })
 
-router.post('/signup', (request, response) => {
-  console.log('Signup request received')
-  var urlParts = url.parse(request.url, true)
-  var parameters = urlParts.query
-
+var getCon = function () {
   var mysql = require('mysql')
   var con = mysql.createConnection({
     host: constants.mySQLHost,
@@ -38,20 +34,30 @@ router.post('/signup', (request, response) => {
     password: constants.mySQLPassword,
     database: constants.mySQLDatabase
   })
+  return con
+}
+
+router.post('/signup', (request, response) => {
+  console.log('Signup request received')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+
+  var con = getCon()
 
   var queryString = 'SELECT * FROM UserList WHERE username="'
   queryString += parameters.q
   queryString += '"'
   console.log(queryString)
+
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to th database.')
+      console.log('Unable to connect to database.')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to find any results from table.')
+        console.log('Unable to find any results from table for signup request.')
       } else if (result.length > 0) {
         response.json({result: 'yes'})
       } else {
@@ -67,13 +73,7 @@ router.post('/login', (request, response) => {
   var urlParts = url.parse(request.url, true)
   var parameters = urlParts.query
 
-  var mysql = require('mysql')
-  var con = mysql.createConnection({
-    host: constants.mySQLHost,
-    user: constants.mySQLUser,
-    password: constants.mySQLPassword,
-    database: constants.mySQLDatabase
-  })
+  var con = getCon()
 
   var queryString = 'SELECT * FROM UserList WHERE username="'
   queryString += parameters.q
@@ -84,13 +84,13 @@ router.post('/login', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to the database.')
+      console.log('Unable to connect to database.')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to find any results from the table.')
+        console.log('Unable to find any results from the table for login request.')
       } else if (result.length > 0) {
         response.json({result: 'yes'})
       } else {
@@ -106,13 +106,7 @@ router.post('/signupNewUser', (request, response) => {
   var urlParts = url.parse(request.url, true)
   var parameters = urlParts.query
 
-  var mysql = require('mysql')
-  var con = mysql.createConnection({
-    host: constants.mySQLHost,
-    user: constants.mySQLUser,
-    password: constants.mySQLPassword,
-    database: constants.mySQLDatabase
-  })
+  var con = getCon()
 
   var queryString = 'INSERT INTO UserList (username, password) VALUES ("'
   queryString += parameters.user
@@ -129,13 +123,43 @@ router.post('/signupNewUser', (request, response) => {
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to insert values into database.')
+        console.log('Unable to insert values into database for signupNewUser request.')
         return
       }
       response.json({result: 'success'})
       console.log('Closing connection...')
     })
   })
+})
+
+router.post('/randomWord', (request, response) => {
+  console.log('Request to get random word recieved.')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+
+  var con = getCon()
+
+  var queryString = 'SELECT w.* FROM Words AS w JOIN '
+  queryString += '(SELECT ROUND(RAND() * (SELECT MAX(id) FROM Words)) AS id) AS x '
+  queryString += 'WHERE w.id >= x.id LIMIT 1;'
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to get word from Words table in database.')
+        response.json({result: 'no'})
+        return
+      }
+      response.json({result: result[0]})
+      console.log('Closing connection...')
+    })
+  })
+
 })
 
 server.listen(port, () => console.log('Listening on port ' + port))

@@ -1,6 +1,6 @@
 <template>
     <div>
-        <h1>Sign up to start imrpoving your handwriting!</h1>
+        <h1>Sign up to start improving your handwriting!</h1>
 
         <input
           type='text'

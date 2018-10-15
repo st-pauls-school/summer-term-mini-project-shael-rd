@@ -11,25 +11,39 @@
           v-on:mouseup="toggleEventOff">
         </canvas>
         <div class="buttonDiv">
-            <button
-              class="drawingToolsButton"
-              v-bind:class="{rubberButtonOnClick: rubber === true}"
-              v-on:click="toggleRubber">
-                Rubber
-              </button>
-            <button
-              class="drawingToolsButton"
-              v-on:click="clearCanvas">
-                Clear
-            </button>
+            <div class='buttonContainer'>
+                <button
+                  class="drawingToolsButton"
+                  v-bind:class="{rubberButtonOnClick: rubber === true}"
+                  v-on:click="toggleRubber">
+                    Rubber
+                </button><!--
+         --></div><!--
+         --><div class='buttonContainer'><!--
+             --><button
+                  class="drawingToolsButton"
+                  v-on:click="clearCanvas">
+                    Clear
+                </button><!--
+         --></div><!--
+         --><div class='buttonContainer'><!--
+             --><button
+                  class="drawingToolsButton"
+                  v-on:click="requestNewText">
+                    Refresh
+                </button>
+            </div>
         </div>
-        <h2>Oooooooof</h2>
     </div>
 </template>
 
 <script>
 export default {
   name: 'WritingCanvas',
+
+  props: {
+    text: String
+  },
 
   data () {
     return {
@@ -46,14 +60,25 @@ export default {
   mounted () {
     this.canvas = document.getElementById('drawingArea')
     this.ctx = this.canvas.getContext('2d')
+
     this.textCanvas = document.getElementById('textArea')
     this.textctx = this.textCanvas.getContext('2d')
+    this.textctx.font = '100px Cookie'
+  },
 
-    this.textctx.font = '50px Cookie'
-    this.textctx.strokeText('Hello World', 10, 50)
+  watch: {
+    text: function (newVal, oldVal) {
+      this.clearCanvas()
+      this.textctx.clearRect(0, 0, this.textCanvas.width, this.textCanvas.height)
+      this.textctx.strokeText(newVal, 30, 200)
+    }
   },
 
   methods: {
+    requestNewText: function () {
+      this.$emit('requestNewText')
+    },
+
     toggleEventOn: function (event) {
       this.newMousePress = true
       this.canvas.addEventListener('mousemove', this.drawOnCanvas)
@@ -123,19 +148,31 @@ export default {
     }
 
     .buttonDiv {
-      margin-left: calc(50% - 200px);
+      margin-left: calc(50% - 271px);
       height: 90px;
-      width: 400px;
+      width: 542px;
+    }
+
+    .buttonContainer {
+      border-right: 1px solid black;
+      display: inline-block;
+      margin: 0;
+      margin-left: 15px;
+      height: 84px;
+      width: 165px;
+    }
+
+    .buttonDiv .buttonContainer:last-child {
+      border: 0;
     }
 
     .drawingToolsButton {
-      display: block;
-      float: left;
       width: 150px;
       height: 60px;
-      margin-top: 15px;
+      margin-top: 12px;
       font-size: 16px;
-      margin-left: 33px;
+      border: 0;
+      display: block;
 
       color: white;
       cursor: pointer;
@@ -143,6 +180,7 @@ export default {
       text-decoration: none;
       background-color: #333;
     }
+
     .drawingToolsButton:focus {
       outline: none;
     }
