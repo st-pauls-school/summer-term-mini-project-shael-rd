@@ -31,6 +31,11 @@
             v-bind:text="text"
             v-on:requestNewText="verticalButtonOnClick(selectedOption)"/>
         </div>
+        <div id='timerScoreContainer'>
+            <h3>Time: {{time}}{{time % 1 === 0 ? '.0' : ''}} secs.</h3>
+            <h3>Score: {{score}}</h3>
+            <button>Calculate</button>
+        </div>
     </div>
 </template>
 
@@ -49,7 +54,9 @@ export default {
       selectedOption: 0,
       text: '',
       headerText: 'Practice writing a random character!',
-      refreshCanvas: false
+      refreshCanvas: false,
+      time: setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100),
+      score: ''
     }
   },
 
@@ -176,5 +183,12 @@ export default {
       list-style-type: none;
       margin: 0;
       padding: 0;
+    }
+
+    #timerScoreContainer h3, #timerScoreContainer button {
+      display: inline-block;
+    }
+    #timerScoreContainer h3:nth-child(2) {
+      margin-left: 30px;
     }
 </style>
