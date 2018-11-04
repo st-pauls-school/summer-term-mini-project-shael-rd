@@ -3,8 +3,8 @@
         <canvas
           id="textArea"
           width="500" height="300">
-        </canvas>
-        <canvas
+        </canvas><!--
+     --><canvas
           id="drawingArea"
           width="500" height="300"
           v-on:mousedown="toggleEventOn"
@@ -38,11 +38,15 @@
 </template>
 
 <script>
+import scoreCalculator from '@/store/modules/scoreCalculator.js'
+
 export default {
   name: 'WritingCanvas',
 
   props: {
-    text: String
+    text: String,
+    scoreButtonPressed: Boolean,
+    time: Number
   },
 
   data () {
@@ -63,18 +67,67 @@ export default {
 
     this.textCanvas = document.getElementById('textArea')
     this.textctx = this.textCanvas.getContext('2d')
-    this.textctx.font = '100px Cookie'
+    this.textctx.font = '75px Cookie'
+    this.ctx.font = '75px Cookie'
+
+    this.textctx.strokeStyle = 'grey'
+    this.ctx.fillStyle = 'white'
   },
 
   watch: {
     text: function (newVal, oldVal) {
       this.clearCanvas()
-      this.textctx.clearRect(0, 0, this.textCanvas.width, this.textCanvas.height)
-      this.textctx.strokeText(newVal, 30, 200)
+      this.writeNewText(newVal, this.textCanvas, this.textctx, false, true)
+    },
+
+    scoreButtonPressed: function (newVal, oldVal) {
+      if (newVal === true) {
+        var savedWriting = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+        this.writeNewText(this.text, this.canvas, this.ctx, true, false)
+        var savedWhiteWriting = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
+        this.ctx.putImageData(savedWriting, 0, 0)
+        var savedOutlineWriting = this.textctx.getImageData(0, 0, this.textCanvas.width, this.textCanvas.height)
+
+        var score = scoreCalculator.calculateScore(savedWriting, savedWhiteWriting, savedOutlineWriting, this.time)
+
+        this.$emit('returnScore', score)
+      }
     }
   },
 
   methods: {
+    writeNewText: function (text, targetCanvas, targetCTX, fill, clear) {
+      if (clear === true) {
+        targetCTX.clearRect(0, 0, targetCanvas.width, targetCanvas.height)
+      }
+      var words = text.split(' ')
+      var lineToDraw = ''
+      var tempLine = ''
+      var lineHeight = 60
+
+      for (var i = 0; i < words.length; i++) {
+        tempLine = tempLine + words[i] + ' '
+        if (targetCTX.measureText(tempLine).width > 460) {
+          if (fill === true) {
+            targetCTX.fillText(lineToDraw, 40, lineHeight)
+          } else {
+            targetCTX.strokeText(lineToDraw, 40, lineHeight)
+          }
+          lineHeight += 60
+          tempLine = words[i] + ' '
+          lineToDraw = words[i] + ' '
+        } else {
+          lineToDraw = tempLine
+        }
+      }
+
+      if (fill === true) {
+        targetCTX.fillText(lineToDraw, 40, lineHeight)
+      } else {
+        targetCTX.strokeText(lineToDraw, 40, lineHeight)
+      }
+    },
+
     requestNewText: function () {
       this.$emit('requestNewText')
     },
@@ -139,11 +192,11 @@ export default {
 </script>
 
 <style scoped>
-    #drawingArea {
+    #drawingArea, #textArea {
       border: 3px solid #333;
       border-radius: 5px;
     }
-    #drawingArea:hover {
+    #drawingArea:hover, #textArea:hover {
       border-color: #4CAF50;
     }
 

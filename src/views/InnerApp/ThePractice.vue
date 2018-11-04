@@ -28,13 +28,22 @@
         </div>
         <div id='canvasContainer'>
             <WritingCanvas
+            ref='writingCanvas'
             v-bind:text="text"
-            v-on:requestNewText="verticalButtonOnClick(selectedOption)"/>
+            v-bind:scoreButtonPressed="scoreButtonPressed"
+            v-bind:time="time"
+            v-on:requestNewText="verticalButtonOnClick(selectedOption)"
+            v-on:returnScore="handleReturnedScore"/>
         </div>
         <div id='timerScoreContainer'>
-            <h3>Time: {{time}}{{time % 1 === 0 ? '.0' : ''}} secs.</h3>
-            <h3>Score: {{score}}</h3>
-            <button>Calculate</button>
+            <h3>Time: {{time}}{{time % 1 === 0 ? '.0' : ''}} secs</h3>
+            <h3>Score: </h3>
+            <button
+              v-on:click="getScore()"
+              v-if="scoreButtonPressed === false">
+                Calculate
+            </button>
+            <h3 v-if="scoreButtonPressed === true"> {{score}}</h3>
         </div>
     </div>
 </template>
@@ -56,7 +65,8 @@ export default {
       headerText: 'Practice writing a random character!',
       refreshCanvas: false,
       time: setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100),
-      score: ''
+      score: 0,
+      scoreButtonPressed: false
     }
   },
 
@@ -65,6 +75,18 @@ export default {
   },
 
   methods: {
+    handleReturnedScore: function (returnedScore) {
+      this.score = returnedScore
+    },
+
+    getScore: function () {
+      this.scoreButtonPressed = true
+    },
+
+    resetTimer: function () {
+      this.time = 0
+    },
+
     getNewWord: function () {
       var http = new XMLHttpRequest()
       var serverResponse = ''
@@ -77,7 +99,7 @@ export default {
           if (serverResponse.result === 'no') {
             vm.text = 'Error: server connection failed'
           } else {
-            if (vm.text !== '') {
+            if (vm.text.length !== 0) {
               vm.text += ' '
             }
             vm.text += serverResponse.result.word
@@ -118,6 +140,8 @@ export default {
           this.getNewWord()
         }
       }
+      this.resetTimer()
+      this.scoreButtonPressed = false
     }
   }
 }
@@ -153,10 +177,13 @@ export default {
     .verticalPractice li button:hover:not(.verticalButtonActive) {
       background-color: #111;
     }
-    .verticalPractice li button:hover {
+    .verticalPractice li button:hover, #timerScoreContainer button:hover {
       cursor: pointer;
     }
-    .verticalPractice li button:focus {
+    #timerScoreContainer button:hover {
+      background-color: #111;
+    }
+    .verticalPractice li button:focus, #timerScoreContainer button:focus {
       outline: none;
     }
 
@@ -190,5 +217,13 @@ export default {
     }
     #timerScoreContainer h3:nth-child(2) {
       margin-left: 30px;
+    }
+    #timerScoreContainer button {
+      width: 60px;
+      height: 25px;
+      color: white;
+      background-color: #333;
+      border: none;
+      padding: 0;
     }
 </style>
