@@ -33,7 +33,8 @@
             v-bind:scoreButtonPressed="scoreButtonPressed"
             v-bind:time="time"
             v-on:requestNewText="verticalButtonOnClick(selectedOption)"
-            v-on:returnScore="handleReturnedScore"/>
+            v-on:returnScore="handleReturnedScore"
+            v-on:timer="handleToggleTimer"/>
         </div>
         <div id='timerScoreContainer'>
             <h3>Time: {{time}}{{time % 1 === 0 ? '.0' : ''}} secs</h3>
@@ -64,7 +65,8 @@ export default {
       text: '',
       headerText: 'Practice writing a random character!',
       refreshCanvas: false,
-      time: setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100),
+      time: 0,
+      timeId: 0,
       score: 0,
       scoreButtonPressed: false
     }
@@ -72,11 +74,20 @@ export default {
 
   mounted () {
     this.verticalButtonOnClick(this.selectedOption)
+    this.timeId = setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100)
   },
 
   methods: {
     handleReturnedScore: function (returnedScore) {
       this.score = returnedScore
+    },
+
+    handleToggleTimer: function (condition) {
+      if (condition === 'stop') {
+        clearInterval(this.timeId)
+      } else if (condition === 'start') {
+        this.timeId = setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100)
+      }
     },
 
     getScore: function () {

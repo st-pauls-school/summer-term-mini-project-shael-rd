@@ -8,7 +8,8 @@
           id="drawingArea"
           width="500" height="300"
           v-on:mousedown="toggleEventOn"
-          v-on:mouseup="toggleEventOff">
+          v-on:mouseup="toggleEventOff"
+          v-on:mouseleave="toggleTimerStop">
         </canvas>
         <div class="buttonDiv">
             <div class='buttonContainer'>
@@ -134,6 +135,7 @@ export default {
 
     toggleEventOn: function (event) {
       this.newMousePress = true
+      this.$emit('timer', 'start')
       this.canvas.addEventListener('mousemove', this.drawOnCanvas)
     },
 
@@ -143,6 +145,10 @@ export default {
 
     toggleRubber: function (event) {
       this.rubber = !this.rubber
+    },
+
+    toggleTimerStop: function (event) {
+      this.$emit('timer', 'stop')
     },
 
     drawOnCanvas: function (event) {
