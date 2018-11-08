@@ -30,7 +30,14 @@
          --><div class='buttonContainer'><!--
              --><button
                   class="drawingToolsButton"
+                  v-if="disableRefresh === false"
                   v-on:click="requestNewText">
+                    Refresh
+                </button><!--
+             --><button
+                  disabled
+                  class="drawingToolsButton disabledButton"
+                  v-if="disableRefresh === true">
                     Refresh
                 </button>
             </div>
@@ -47,7 +54,8 @@ export default {
   props: {
     text: String,
     scoreButtonPressed: Boolean,
-    time: Number
+    time: Number,
+    disableRefresh: Boolean
   },
 
   data () {
@@ -234,7 +242,6 @@ export default {
       display: block;
 
       color: white;
-      cursor: pointer;
       text-align: center;
       text-decoration: none;
       background-color: #333;
@@ -243,12 +250,17 @@ export default {
     .drawingToolsButton:focus {
       outline: none;
     }
-    .drawingToolsButton:hover:not(.rubberButtonOnClick) {
+    .drawingToolsButton:hover:not(.rubberButtonOnClick):not(.disabledButton) {
       background: #111;
+      cursor: pointer;
     }
 
     .rubberButtonOnClick {
       background-color: #4CAF50;
+    }
+
+    .disabledButton {
+      background-color: #999 !important;
     }
 
     canvas {

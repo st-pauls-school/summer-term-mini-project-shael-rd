@@ -32,6 +32,7 @@
             v-bind:text="text"
             v-bind:scoreButtonPressed="scoreButtonPressed"
             v-bind:time="time"
+            v-bind:disableRefresh="false"
             v-on:requestNewText="verticalButtonOnClick(selectedOption)"
             v-on:returnScore="handleReturnedScore"
             v-on:timer="handleToggleTimer"/>
@@ -74,7 +75,6 @@ export default {
 
   mounted () {
     this.verticalButtonOnClick(this.selectedOption)
-    this.timeId = setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100)
   },
 
   methods: {
