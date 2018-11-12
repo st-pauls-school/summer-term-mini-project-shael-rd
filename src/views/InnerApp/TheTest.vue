@@ -17,17 +17,17 @@
 
             <h1>{{testMessage}}</h1>
             <div id='listContainer'>
-                
+                <h3>Part {{testNo}} of {{totalTests}}</h3>
+                <button v-on:click="nextButton">Next</button>
             </div>
             <div id='canvasContainer'>
                 <WritingCanvas
-                  ref='writingCanvas'
                   v-bind:text="text"
-                  v-bind:scoreButtonPressed="scoreButtonPressed"
-                  v-bind:time="time"
+                  v-bind:scoreButtonPressed="false"
+                  v-bind:time="0"
                   v-bind:disableRefresh="true"
-                  v-on:requestNewText="verticalButtonOnClick(selectedOption)"
-                  v-on:returnScore="handleReturnedScore"
+                  v-on:requestNewText="handleBlankRequest"
+                  v-on:returnScore="handleReturnScore"
                   v-on:timer="handleToggleTimer"/>
             </div>
 
@@ -50,7 +50,12 @@ export default {
       testStarted: false,
       testType: '',
       text: '',
-      testMessage: ''
+      testMessage: '',
+      time: 0,
+      testNo: 1,
+      totalTests: 0,
+      scoreButtonPressed: false,
+      totalScore: 0
     }
   },
 
@@ -60,11 +65,20 @@ export default {
       this.testType = type
       if (type === 'letter') {
         this.testMessage = 'Letter Test'
+        this.totalTests = 3
+
+        this.text = 'ABCDEFGHIJK LMNOPQRSTUV WXYZabcdefghijklm nopqrstuvwxyz'
       } else if (type === 'word') {
         this.testMessage = 'Word Test'
+        this.totalTests = 10
       } else {
         this.testMessage = 'Sentence Test'
+        this.totalTests = 5
       }
+    },
+
+    nextButton: function () {
+      this.testNo++
     },
 
     getNewWord: function () {
@@ -91,12 +105,50 @@ export default {
 
       http.open('POST', constants.serverURL + '/api/randomWord', true)
       http.send()
+    },
+
+    handleBlankRequest: function () {
+      console.log('oof1')
+    },
+
+    handleToggleTimer: function () {
+      console.log('oof2')
+    },
+
+    handleReturnScore: function (score) {
+      this.totalScore += score
     }
   }
 }
 </script>
 
 <style scoped>
+
+#listContainer, #canvasContainer {
+  display: inline-block;
+  vertical-align: top;
+}
+
+#canvasContainer {
+  margin-right: 110px;
+}
+
+#listContainer h3 {
+  border-bottom: 1px solid black;
+  margin: 0;
+  padding: 16px;
+}
+
+#listContainer button {
+  margin-top: 20px;
+  height: 60px;
+  width: 120px;
+  border: 0;
+
+  background-color: #333;
+  color: white;
+  font-size: 16px;
+}
 
 #landingPage h1 {
   margin-top: 8%;
@@ -110,10 +162,10 @@ export default {
   font-size: 16px;
   border: none;
 }
-#landingPage button:focus {
+#landingPage button:focus, #listContainer button:focus {
   outline: none;
 }
-#landingPage button:hover {
+#landingPage button:hover, #listContainer button:hover {
   cursor: pointer;
   background: #111;
 }

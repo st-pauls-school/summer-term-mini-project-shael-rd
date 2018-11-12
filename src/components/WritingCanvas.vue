@@ -81,12 +81,15 @@ export default {
 
     this.textctx.strokeStyle = 'grey'
     this.ctx.fillStyle = 'white'
+
+    this.writeNewText(this.text, this.textCanvas, this.textctx, false, true)
   },
 
   watch: {
     text: function (newVal, oldVal) {
       this.clearCanvas()
       this.writeNewText(newVal, this.textCanvas, this.textctx, false, true)
+      console.log('fucc')
     },
 
     scoreButtonPressed: function (newVal, oldVal) {
@@ -118,9 +121,9 @@ export default {
         tempLine = tempLine + words[i] + ' '
         if (targetCTX.measureText(tempLine).width > 460) {
           if (fill === true) {
-            targetCTX.fillText(lineToDraw, 40, lineHeight)
+            targetCTX.fillText(lineToDraw, 20, lineHeight)
           } else {
-            targetCTX.strokeText(lineToDraw, 40, lineHeight)
+            targetCTX.strokeText(lineToDraw, 20, lineHeight)
           }
           lineHeight += 60
           tempLine = words[i] + ' '
@@ -131,9 +134,9 @@ export default {
       }
 
       if (fill === true) {
-        targetCTX.fillText(lineToDraw, 40, lineHeight)
+        targetCTX.fillText(lineToDraw, 20, lineHeight)
       } else {
-        targetCTX.strokeText(lineToDraw, 40, lineHeight)
+        targetCTX.strokeText(lineToDraw, 20, lineHeight)
       }
     },
 
