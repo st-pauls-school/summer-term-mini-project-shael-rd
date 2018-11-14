@@ -1,4 +1,4 @@
-export default {
+export const constants = {
   serverURL: 'http://localhost:3001',
   frontendURL: 'http://localhost:8080',
 
@@ -8,5 +8,10 @@ export default {
   mySQLHost: '127.0.0.1',
   mySQLUser: 'oscar',
   mySQLPassword: 'password',
-  mySQLDatabase: 'myDB'
+  mySQLDatabase: 'myDB',
+
+  textLineSpacing: 60,
+  textLeftIndent: 20,
+  canvasWidth: 500,
+  canvasHeight: 300
 }

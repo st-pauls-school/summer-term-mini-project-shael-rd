@@ -2,14 +2,16 @@
     <div>
         <canvas
           id="textArea"
-          width="500" height="300">
+          v-bind:width="500"
+          v-bind:height="300">
         </canvas><!--
      --><canvas
           id="drawingArea"
-          width="500" height="300"
-          v-on:mousedown="toggleEventOn"
-          v-on:mouseup="toggleEventOff"
-          v-on:mouseleave="toggleTimerStop">
+          v-bind:width="500"
+          v-bind:height="300"
+          v-on:mousedown="handleMouseDown"
+          v-on:mouseup="handleMouseUp"
+          v-on:mouseleave="handleMouseLeave">
         </canvas>
         <div class="buttonDiv">
             <div class='buttonContainer'>
@@ -47,6 +49,7 @@
 
 <script>
 import scoreCalculator from '@/store/modules/scoreCalculator.js'
+import {constants} from '@/constants.js'
 
 export default {
   name: 'WritingCanvas',
@@ -62,45 +65,50 @@ export default {
     return {
       previousPos: 0,
       newMousePress: true,
+      addNewTimer: true,
       rubber: false,
-      canvas: 0,
-      ctx: 0,
-      textCanvas: 0,
-      textctx: 0
+      drawingSurface: [
+        {canvas: 0, ctx: 0}
+      ],
+      textSurface: [
+        {canvas: 0, ctx: 0}
+      ]
     }
   },
 
   mounted () {
-    this.canvas = document.getElementById('drawingArea')
-    this.ctx = this.canvas.getContext('2d')
+    this.drawingSurface.canvas = document.getElementById('drawingArea')
+    this.drawingSurface.ctx = this.drawingSurface.canvas.getContext('2d')
 
-    this.textCanvas = document.getElementById('textArea')
-    this.textctx = this.textCanvas.getContext('2d')
-    this.textctx.font = '75px Cookie'
-    this.ctx.font = '75px Cookie'
+    console.log('MEGA OOF')
+    this.textSurface.canvas = document.getElementById('textArea')
+    this.textSurface.ctx = this.textSurface.canvas.getContext('2d')
 
-    this.textctx.strokeStyle = 'grey'
-    this.ctx.fillStyle = 'white'
+    this.drawingSurface.ctx.font = '75px Cookie'
+    this.textSurface.ctx.font = '75px Cookie'
+    this.drawingSurface.ctx.strokeStyle = 'grey'
+    this.textSurface.ctx.fillStyle = 'white'
 
-    this.writeNewText(this.text, this.textCanvas, this.textctx, false, true)
+    this.writeNewText(this.text, this.textSurface, false, true)
   },
 
   watch: {
     text: function (newVal, oldVal) {
       this.clearCanvas()
-      this.writeNewText(newVal, this.textCanvas, this.textctx, false, true)
-      console.log('fucc')
+      this.writeNewText(newVal, this.textSurface, false, true)
     },
 
     scoreButtonPressed: function (newVal, oldVal) {
       if (newVal === true) {
-        var savedWriting = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-        this.writeNewText(this.text, this.canvas, this.ctx, true, false)
-        var savedWhiteWriting = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height)
-        this.ctx.putImageData(savedWriting, 0, 0)
-        var savedOutlineWriting = this.textctx.getImageData(0, 0, this.textCanvas.width, this.textCanvas.height)
+        var userWritingIMG = this.drawingSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
+        this.writeNewText(this.text, this.drawingSurface, true, false)
 
-        var score = scoreCalculator.calculateScore(savedWriting, savedWhiteWriting, savedOutlineWriting, this.time)
+        var userMistakesIMG = this.drawingSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
+        this.drawingSurface.ctx.putImageData(userWritingIMG, 0, 0)
+
+        var textIMG = this.textSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
+
+        var score = scoreCalculator.calculateScore(userWritingIMG, userMistakesIMG, textIMG, this.time)
 
         this.$emit('returnScore', score)
       }
@@ -108,35 +116,36 @@ export default {
   },
 
   methods: {
-    writeNewText: function (text, targetCanvas, targetCTX, fill, clear) {
-      if (clear === true) {
-        targetCTX.clearRect(0, 0, targetCanvas.width, targetCanvas.height)
+    writeNewText: function (text, surface, isFilled, isCleared) {
+      if (isCleared) {
+        surface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
       }
       var words = text.split(' ')
-      var lineToDraw = ''
+      var line = ''
       var tempLine = ''
-      var lineHeight = 60
+      var lineHeight = constants.textLineSpacing
 
       for (var i = 0; i < words.length; i++) {
-        tempLine = tempLine + words[i] + ' '
-        if (targetCTX.measureText(tempLine).width > 460) {
-          if (fill === true) {
-            targetCTX.fillText(lineToDraw, 20, lineHeight)
+        tempLine += (words[i] + ' ')
+
+        if (surface.ctx.measureText(tempLine).width > 460) {
+          if (isFilled === true) {
+            surface.ctx.fillText(line, constants.textLeftIndent, lineHeight)
           } else {
-            targetCTX.strokeText(lineToDraw, 20, lineHeight)
+            surface.ctx.strokeText(line, constants.textLeftIndent, lineHeight)
           }
-          lineHeight += 60
+          lineHeight += constants.textLineSpacing
           tempLine = words[i] + ' '
-          lineToDraw = words[i] + ' '
+          line = words[i] + ' '
         } else {
-          lineToDraw = tempLine
+          line = tempLine
         }
       }
 
-      if (fill === true) {
-        targetCTX.fillText(lineToDraw, 20, lineHeight)
+      if (isFilled === true) {
+        surface.ctx.fillText(line, 20, lineHeight)
       } else {
-        targetCTX.strokeText(lineToDraw, 20, lineHeight)
+        surface.ctx.strokeText(line, 20, lineHeight)
       }
     },
 
@@ -144,22 +153,28 @@ export default {
       this.$emit('requestNewText')
     },
 
-    toggleEventOn: function (event) {
+    handleMouseDown: function (event) {
       this.newMousePress = true
-      this.$emit('timer', 'start')
+
+      if (this.addNewTimer === true) {
+        this.$emit('timer', 'start')
+        this.addNewTimer = false
+      }
+
       this.canvas.addEventListener('mousemove', this.drawOnCanvas)
     },
 
-    toggleEventOff: function (event) {
+    handleMouseUp: function (event) {
       this.canvas.removeEventListener('mousemove', this.drawOnCanvas)
+    },
+
+    handleMouseLeave: function (event) {
+      this.$emit('timer', 'stop')
+      this.addNewTimer = true
     },
 
     toggleRubber: function (event) {
       this.rubber = !this.rubber
-    },
-
-    toggleTimerStop: function (event) {
-      this.$emit('timer', 'stop')
     },
 
     drawOnCanvas: function (event) {

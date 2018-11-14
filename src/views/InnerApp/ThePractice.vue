@@ -52,7 +52,7 @@
 
 <script>
 import WritingCanvas from '@/components/WritingCanvas'
-import constants from '@/constants.js'
+import {constants} from '@/constants.js'
 
 export default {
   name: 'ThePractice',
@@ -141,7 +141,6 @@ export default {
         this.text = ''
         this.headerText = 'Practice writing a random word!'
         this.getNewWord()
-        console.log(this.text)
       } else {
         var numberOfWords = 3 + Math.floor(Math.random() * 4)
         this.headerText = 'Practice writing a random sentence!'

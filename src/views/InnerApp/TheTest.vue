@@ -37,7 +37,7 @@
 
 <script>
 import WritingCanvas from '@/components/WritingCanvas'
-import constants from '@/constants.js'
+import {constants} from '@/constants.js'
 
 export default {
   name: 'TheTest',
@@ -52,6 +52,7 @@ export default {
       text: '',
       testMessage: '',
       time: 0,
+      timeId: 0,
       testNo: 1,
       totalTests: 0,
       scoreButtonPressed: false,
@@ -69,9 +70,18 @@ export default {
 
         this.text = 'ABCDEFGHIJK LMNOPQRSTUV WXYZabcdefghijklm nopqrstuvwxyz'
       } else if (type === 'word') {
+        this.text = ''
+        this.getNewWord()
+
         this.testMessage = 'Word Test'
         this.totalTests = 10
       } else {
+        var numberOfWords = 3 + Math.floor(Math.random() * 4)
+        this.text = ''
+        for (; numberOfWords > 0; numberOfWords--) {
+          this.getNewWord()
+        }
+
         this.testMessage = 'Sentence Test'
         this.totalTests = 5
       }
@@ -79,6 +89,11 @@ export default {
 
     nextButton: function () {
       this.testNo++
+
+      this.scoreButtonPressed = true
+      this.scoreButtonPressed = false
+
+      this.startTest(this.testType)
     },
 
     getNewWord: function () {
@@ -117,6 +132,7 @@ export default {
 
     handleReturnScore: function (score) {
       this.totalScore += score
+      console.log(score)
     }
   }
 }

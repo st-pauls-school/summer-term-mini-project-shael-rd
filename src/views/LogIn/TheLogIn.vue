@@ -31,7 +31,7 @@
 </template>
 
 <script>
-import constants from '@/constants.js'
+import {constants} from '@/constants.js'
 
 export default {
   name: 'TheLogIn',
