@@ -17,7 +17,7 @@
             <div class='buttonContainer'>
                 <button
                   class="drawingToolsButton"
-                  v-bind:class="{rubberButtonOnClick: rubber === true}"
+                  v-bind:class="{rubberButtonOnClick: isRubber === true}"
                   v-on:click="toggleRubber">
                     Rubber
                 </button><!--
@@ -25,21 +25,21 @@
          --><div class='buttonContainer'><!--
              --><button
                   class="drawingToolsButton"
-                  v-on:click="clearCanvas">
+                  v-on:click="clearSurface">
                     Clear
                 </button><!--
          --></div><!--
          --><div class='buttonContainer'><!--
              --><button
                   class="drawingToolsButton"
-                  v-if="disableRefresh === false"
+                  v-if="!isRefreshDisabled"
                   v-on:click="requestNewText">
                     Refresh
                 </button><!--
              --><button
                   disabled
                   class="drawingToolsButton disabledButton"
-                  v-if="disableRefresh === true">
+                  v-if="isRefreshDisabled">
                     Refresh
                 </button>
             </div>
@@ -56,17 +56,17 @@ export default {
 
   props: {
     text: String,
-    scoreButtonPressed: Boolean,
+    isScoreButtonActive: Boolean,
     time: Number,
-    disableRefresh: Boolean
+    isRefreshDisabled: Boolean
   },
 
   data () {
     return {
       previousPos: 0,
-      newMousePress: true,
-      addNewTimer: true,
-      rubber: false,
+      isNewDrawingPath: true,
+      isTimerRunning: false,
+      isRubber: false,
       drawingSurface: [
         {canvas: 0, ctx: 0}
       ],
@@ -80,25 +80,24 @@ export default {
     this.drawingSurface.canvas = document.getElementById('drawingArea')
     this.drawingSurface.ctx = this.drawingSurface.canvas.getContext('2d')
 
-    console.log('MEGA OOF')
     this.textSurface.canvas = document.getElementById('textArea')
     this.textSurface.ctx = this.textSurface.canvas.getContext('2d')
 
     this.drawingSurface.ctx.font = '75px Cookie'
     this.textSurface.ctx.font = '75px Cookie'
-    this.drawingSurface.ctx.strokeStyle = 'grey'
-    this.textSurface.ctx.fillStyle = 'white'
+    this.textSurface.ctx.strokeStyle = 'grey'
+    this.drawingSurface.ctx.fillStyle = 'white'
 
     this.writeNewText(this.text, this.textSurface, false, true)
   },
 
   watch: {
     text: function (newVal, oldVal) {
-      this.clearCanvas()
+      this.clearSurface()
       this.writeNewText(newVal, this.textSurface, false, true)
     },
 
-    scoreButtonPressed: function (newVal, oldVal) {
+    isScoreButtonActive: function (newVal, oldVal) {
       if (newVal === true) {
         var userWritingIMG = this.drawingSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
         this.writeNewText(this.text, this.drawingSurface, true, false)
@@ -128,8 +127,8 @@ export default {
       for (var i = 0; i < words.length; i++) {
         tempLine += (words[i] + ' ')
 
-        if (surface.ctx.measureText(tempLine).width > 460) {
-          if (isFilled === true) {
+        if (surface.ctx.measureText(tempLine).width > (constants.canvasWidth - constants.textLeftIndent)) {
+          if (isFilled) {
             surface.ctx.fillText(line, constants.textLeftIndent, lineHeight)
           } else {
             surface.ctx.strokeText(line, constants.textLeftIndent, lineHeight)
@@ -142,10 +141,10 @@ export default {
         }
       }
 
-      if (isFilled === true) {
-        surface.ctx.fillText(line, 20, lineHeight)
+      if (isFilled) {
+        surface.ctx.fillText(line, constants.textLeftIndent, lineHeight)
       } else {
-        surface.ctx.strokeText(line, 20, lineHeight)
+        surface.ctx.strokeText(line, constants.textLeftIndent, lineHeight)
       }
     },
 
@@ -154,35 +153,35 @@ export default {
     },
 
     handleMouseDown: function (event) {
-      this.newMousePress = true
+      this.isNewDrawingPath = true
 
-      if (this.addNewTimer === true) {
+      if (!this.isTimerRunning) {
         this.$emit('timer', 'start')
-        this.addNewTimer = false
+        this.isTimerRunning = true
       }
 
-      this.canvas.addEventListener('mousemove', this.drawOnCanvas)
+      this.drawingSurface.canvas.addEventListener('mousemove', this.drawOnCanvas)
     },
 
     handleMouseUp: function (event) {
-      this.canvas.removeEventListener('mousemove', this.drawOnCanvas)
+      this.drawingSurface.canvas.removeEventListener('mousemove', this.drawOnCanvas)
     },
 
     handleMouseLeave: function (event) {
       this.$emit('timer', 'stop')
-      this.addNewTimer = true
+      this.isTimerRunning = false
     },
 
     toggleRubber: function (event) {
-      this.rubber = !this.rubber
+      this.isRubber = !this.isRubber
     },
 
     drawOnCanvas: function (event) {
-      var rect = this.canvas.getBoundingClientRect()
+      var rect = this.drawingSurface.canvas.getBoundingClientRect()
       var mouseX = Math.floor(event.clientX - rect.left)
       var mouseY = Math.floor(event.clientY - rect.top)
 
-      if (!this.rubber) {
+      if (!this.isRubber) {
         this.drawNewPoint(mouseX, mouseY)
       } else {
         this.eraseArea(mouseX, mouseY)
@@ -190,34 +189,34 @@ export default {
     },
 
     drawNewPoint: function (mouseX, mouseY) {
-      if (this.newMousePress === false) {
-        this.ctx.beginPath()
-        this.ctx.moveTo(this.previousPos.x, this.previousPos.y)
-        this.ctx.lineTo(mouseX, mouseY)
-        this.ctx.strokeStyle = 'black'
-        this.ctx.stroke()
-        this.ctx.closePath()
+      if (!this.isNewDrawingPath) {
+        this.drawingSurface.ctx.beginPath()
+        this.drawingSurface.ctx.moveTo(this.previousPos.x, this.previousPos.y)
+        this.drawingSurface.ctx.lineTo(mouseX, mouseY)
+        this.drawingSurface.ctx.strokeStyle = 'black'
+        this.drawingSurface.ctx.stroke()
+        this.drawingSurface.ctx.closePath()
       } else {
-        this.newMousePress = false
+        this.isNewDrawingPath = false
       }
       this.previousPos = {x: mouseX, y: mouseY}
     },
 
     eraseArea: function (mouseX, mouseY) {
-      this.ctx.save()
+      this.drawingSurface.ctx.save()
 
-      this.ctx.beginPath()
-      this.ctx.moveTo(mouseX, mouseY)
-      this.ctx.arc(mouseX, mouseY, 10, 0, 2 * Math.PI, false)
-      this.ctx.closePath()
+      this.drawingSurface.ctx.beginPath()
+      this.drawingSurface.ctx.moveTo(mouseX, mouseY)
+      this.drawingSurface.ctx.arc(mouseX, mouseY, 10, 0, 2 * Math.PI, false)
+      this.drawingSurface.ctx.closePath()
 
-      this.ctx.clip()
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
-      this.ctx.restore()
+      this.drawingSurface.ctx.clip()
+      this.drawingSurface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
+      this.drawingSurface.ctx.restore()
     },
 
-    clearCanvas: function () {
-      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    clearSurface: function () {
+      this.drawingSurface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
     }
   }
 }

@@ -25,7 +25,7 @@
                   v-bind:text="text"
                   v-bind:scoreButtonPressed="false"
                   v-bind:time="0"
-                  v-bind:disableRefresh="true"
+                  v-bind:isRefreshDisabled="true"
                   v-on:requestNewText="handleBlankRequest"
                   v-on:returnScore="handleReturnScore"
                   v-on:timer="handleToggleTimer"/>

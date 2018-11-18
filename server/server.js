@@ -1,4 +1,4 @@
-import constants from '../src/constants.js'
+import {constants} from '../src/constants.js'
 const express = require('express')
 const url = require('url')
 const server = express()

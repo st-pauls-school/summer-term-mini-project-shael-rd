@@ -2,25 +2,25 @@
     <div id='pageContent'>
         <h1>{{headerText}}</h1>
         <div id='listContainer'>
-            <ul class='verticalPractice'>
+            <ul>
                 <li>
                     <button
-                      v-bind:class="{verticalButtonActive: selectedOption === 0}"
-                      v-on:click="verticalButtonOnClick(0)">
+                      v-bind:class="{verticalButtonActive: selectedTextOption === 0}"
+                      v-on:click="changeTextType(0)">
                         Letter
                     </button>
                 </li>
                 <li>
                     <button
-                      v-bind:class="{verticalButtonActive: selectedOption === 1}"
-                      v-on:click="verticalButtonOnClick(1)">
+                      v-bind:class="{verticalButtonActive: selectedTextOption === 1}"
+                      v-on:click="changeTextType(1)">
                         Word
                     </button>
                 </li>
                 <li>
                     <button
-                      v-bind:class="{verticalButtonActive: selectedOption === 2}"
-                      v-on:click="verticalButtonOnClick(2)">
+                      v-bind:class="{verticalButtonActive: selectedTextOption === 2}"
+                      v-on:click="changeTextType(2)">
                         Sentence
                     </button>
                 </li>
@@ -28,12 +28,11 @@
         </div>
         <div id='canvasContainer'>
             <WritingCanvas
-            ref='writingCanvas'
             v-bind:text="text"
-            v-bind:scoreButtonPressed="scoreButtonPressed"
+            v-bind:isScoreButtonActive="isScoreButtonActive"
             v-bind:time="time"
-            v-bind:disableRefresh="false"
-            v-on:requestNewText="verticalButtonOnClick(selectedOption)"
+            v-bind:isRefreshDisabled="false"
+            v-on:requestNewText="changeTextType(selectedTextOption)"
             v-on:returnScore="handleReturnedScore"
             v-on:timer="handleToggleTimer"/>
         </div>
@@ -41,11 +40,11 @@
             <h3>Time: {{time}}{{time % 1 === 0 ? '.0' : ''}} secs</h3>
             <h3>Score: </h3>
             <button
-              v-on:click="getScore()"
-              v-if="scoreButtonPressed === false">
+              v-on:click="getScore"
+              v-if="!isScoreButtonActive">
                 Calculate
             </button>
-            <h3 v-if="scoreButtonPressed === true"> {{score}}</h3>
+            <h3 v-if="isScoreButtonActive"> {{score}}</h3>
         </div>
     </div>
 </template>
@@ -62,19 +61,18 @@ export default {
 
   data () {
     return {
-      selectedOption: 0,
+      selectedTextOption: 0,
       text: '',
       headerText: 'Practice writing a random character!',
-      refreshCanvas: false,
       time: 0,
       timeId: 0,
       score: 0,
-      scoreButtonPressed: false
+      isScoreButtonActive: false
     }
   },
 
   mounted () {
-    this.verticalButtonOnClick(this.selectedOption)
+    this.changeTextType(this.selectedTextOption)
   },
 
   methods: {
@@ -91,7 +89,7 @@ export default {
     },
 
     getScore: function () {
-      this.scoreButtonPressed = true
+      this.isScoreButtonActive = true
     },
 
     resetTimer: function () {
@@ -124,8 +122,8 @@ export default {
       http.send()
     },
 
-    verticalButtonOnClick: function (buttonNo) {
-      this.selectedOption = buttonNo
+    changeTextType: function (buttonNo) {
+      this.selectedTextOption = buttonNo
 
       if (buttonNo === 0) {
         this.headerText = 'Practice writing a random character!'
@@ -151,7 +149,7 @@ export default {
         }
       }
       this.resetTimer()
-      this.scoreButtonPressed = false
+      this.isScoreButtonActive = false
     }
   }
 }
@@ -178,22 +176,22 @@ export default {
       width: 140px;
     }
 
-    .verticalPractice li {
+    #listContainer ul li {
       padding: 12px 0 12px 0;
       border: 0;
       border-bottom: 1px solid black;
     }
 
-    .verticalPractice li button:hover:not(.verticalButtonActive) {
+    #listContainer ul li button:hover:not(.verticalButtonActive) {
       background-color: #111;
     }
-    .verticalPractice li button:hover, #timerScoreContainer button:hover {
+    #listContainer ul li button:hover, #timerScoreContainer button:hover {
       cursor: pointer;
     }
     #timerScoreContainer button:hover {
       background-color: #111;
     }
-    .verticalPractice li button:focus, #timerScoreContainer button:focus {
+    #listContainer ul li button:focus, #timerScoreContainer button:focus {
       outline: none;
     }
 
@@ -201,7 +199,7 @@ export default {
       background-color: #4CAF50 !important;
     }
 
-    .verticalPractice li button {
+    #listContainer ul li button {
       margin: 0;
       height: 59px;
       width: 120px;
@@ -212,11 +210,11 @@ export default {
       font-size: 16px;
     }
 
-    .verticalPractice li:last-child {
+    #listContainer li:last-child {
       border-bottom: 0px !important;
     }
 
-    .verticalPractice {
+    #listContainer ul {
       list-style-type: none;
       margin: 0;
       padding: 0;
