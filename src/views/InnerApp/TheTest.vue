@@ -2,10 +2,10 @@
     <div>
         <div
           id='landingPage'
-          v-if="testStarted === false">
+          v-if="stage === 0">
 
             <h1>What kind of test would you like to take?</h1>
-            <button v-on:click="startTest('letter')">Letter</button>
+            <button v-on:click="startTest('alphabet')">Alphabet</button>
             <button v-on:click="startTest('word')">Word</button>
             <button v-on:click="startTest('sentence')">Sentence</button>
 
@@ -13,7 +13,7 @@
 
         <div
           id='testArea'
-          v-if="testStarted === true">
+          v-if="stage === 1">
 
             <h1>{{testMessage}}</h1>
             <div id='listContainer'>
@@ -23,14 +23,21 @@
             <div id='canvasContainer'>
                 <WritingCanvas
                   v-bind:text="text"
-                  v-bind:scoreButtonPressed="false"
-                  v-bind:time="0"
+                  v-bind:isScoreButtonActive="isScoreButtonActive"
+                  v-bind:time="time"
                   v-bind:isRefreshDisabled="true"
                   v-on:requestNewText="handleBlankRequest"
                   v-on:returnScore="handleReturnScore"
                   v-on:timer="handleToggleTimer"/>
             </div>
+        </div>
 
+        <div
+          id='summaryPage'
+          v-if="stage === 2">
+
+            <h2>Your total score: {{totalScore}}</h2>
+            <h2>Your total time: {{time}}</h2>
         </div>
     </div>
 </template>
@@ -47,7 +54,7 @@ export default {
 
   data () {
     return {
-      testStarted: false,
+      stage: 0,
       testType: '',
       text: '',
       testMessage: '',
@@ -55,20 +62,23 @@ export default {
       timeId: 0,
       testNo: 1,
       totalTests: 0,
-      scoreButtonPressed: false,
+      isScoreButtonActive: false,
       totalScore: 0
     }
   },
 
   methods: {
     startTest: function (type) {
-      this.testStarted = true
+      this.stage = 1
       this.testType = type
-      if (type === 'letter') {
-        this.testMessage = 'Letter Test'
+      if (type === 'alphabet') {
+        this.text = ''
+        this.testMessage = 'Alphabet Test'
         this.totalTests = 3
 
-        this.text = 'ABCDEFGHIJK LMNOPQRSTUV WXYZabcdefghijklm nopqrstuvwxyz'
+        setTimeout(() => {
+          this.text = 'ABCDEFGHIJK LMNOPQRSTUV WXYZabcdefghijklm nopqrstuvwxyz'
+        }, 2)
       } else if (type === 'word') {
         this.text = ''
         this.getNewWord()
@@ -90,10 +100,10 @@ export default {
     nextButton: function () {
       this.testNo++
 
-      this.scoreButtonPressed = true
-      this.scoreButtonPressed = false
-
-      this.startTest(this.testType)
+      this.isScoreButtonActive = true
+      setTimeout(() => {
+        this.isScoreButtonActive = false
+      }, 2)
     },
 
     getNewWord: function () {
@@ -123,16 +133,27 @@ export default {
     },
 
     handleBlankRequest: function () {
-      console.log('oof1')
+      console.log('This function should never run')
     },
 
-    handleToggleTimer: function () {
-      console.log('oof2')
+    handleToggleTimer: function (condition) {
+      if (condition === 'stop') {
+        clearInterval(this.timeId)
+      } else if (condition === 'start') {
+        this.timeId = setInterval(_ => { this.time = ((this.time * 10) + 1) / 10 }, 100)
+      }
     },
 
     handleReturnScore: function (score) {
-      this.totalScore += score
-      console.log(score)
+      this.totalScore += Number(score)
+      console.log('Score: ', Number(score))
+
+      if (this.testNo > this.totalTests) {
+        this.stage = 2
+        this.totalScore = this.totalScore.toFixed(2)
+      } else {
+        this.startTest(this.testType)
+      }
     }
   }
 }
