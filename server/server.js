@@ -136,7 +136,6 @@ router.post('/randomWord', (request, response) => {
   console.log('Request to get random word recieved.')
   var urlParts = url.parse(request.url, true)
   var parameters = urlParts.query
-
   var con = getCon()
 
   var queryString = 'SELECT w.* FROM Words AS w JOIN '
@@ -159,6 +158,48 @@ router.post('/randomWord', (request, response) => {
       console.log('Closing connection...')
     })
   })
+
+})
+
+router.post('/getUserId', (request, response) => {
+  console.log('Request to grab userId by username received')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+  var con = getCon()
+
+  var queryString = 'SELECT userid FROM userlist WHERE username="' + parameters.username + '"'
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to get userid from UserList table in database.')
+        response.json({userid: 'no'})
+        return
+      }
+      response.json({userid: result[0]})
+      console.log('Closing connection...')
+    })
+  })
+})
+
+router.post('/submitScore', (request, response) => {
+  console.log('Request to submit user score received')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+  var con = getCon()
+
+  var queryString = 'INSERT INTO TestResults (testtype, userid, score, time, date, accuracy) VALUES ("'
+  queryString += parameters.testtype + '", "'
+  queryString += parameters.userid + '", '
+  queryString += parameters.score + ', '
+  queryString += parameters.time + ', '
+  queryString += 'CURRENT_TIMESTAMP, '
+  queryString += parameters.accuracy + ')'
+  console.log('Query String: ' + queryString)
 
 })
 

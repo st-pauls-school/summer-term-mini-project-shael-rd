@@ -51,7 +51,7 @@
 
 <script>
 import WritingCanvas from '@/components/WritingCanvas'
-import {constants} from '@/constants.js'
+import getNewWord from '@/store/modules/getNewWord.js'
 
 export default {
   name: 'ThePractice',
@@ -96,32 +96,6 @@ export default {
       this.time = 0
     },
 
-    getNewWord: function () {
-      var http = new XMLHttpRequest()
-      var serverResponse = ''
-      var vm = this
-
-      http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-          serverResponse = JSON.parse(this.responseText)
-
-          if (serverResponse.result === 'no') {
-            vm.text = 'Error: server connection failed'
-          } else {
-            if (vm.text.length !== 0) {
-              vm.text += ' '
-            }
-            vm.text += serverResponse.result.word
-          }
-        } else if (this.readyState === 4) {
-          vm.text = 'Error: server connection failed'
-        }
-      }
-
-      http.open('POST', constants.serverURL + '/api/randomWord', true)
-      http.send()
-    },
-
     changeTextType: function (buttonNo) {
       this.selectedTextOption = buttonNo
 
@@ -138,14 +112,14 @@ export default {
       } else if (buttonNo === 1) {
         this.text = ''
         this.headerText = 'Practice writing a random word!'
-        this.getNewWord()
+        getNewWord.getNewWord(this)
       } else {
         var numberOfWords = 3 + Math.floor(Math.random() * 4)
         this.headerText = 'Practice writing a random sentence!'
         this.text = ''
 
         for (; numberOfWords > 0; numberOfWords--) {
-          this.getNewWord()
+          getNewWord.getNewWord(this)
         }
       }
       this.resetTimer()

@@ -44,6 +44,7 @@
 
 <script>
 import WritingCanvas from '@/components/WritingCanvas'
+import getNewWord from '@/store/modules/getNewWord.js'
 import {constants} from '@/constants.js'
 
 export default {
@@ -81,7 +82,7 @@ export default {
         }, 2)
       } else if (type === 'word') {
         this.text = ''
-        this.getNewWord()
+        getNewWord.getNewWord(this)
 
         this.testMessage = 'Word Test'
         this.totalTests = 10
@@ -89,7 +90,7 @@ export default {
         var numberOfWords = 3 + Math.floor(Math.random() * 4)
         this.text = ''
         for (; numberOfWords > 0; numberOfWords--) {
-          this.getNewWord()
+          getNewWord.getNewWord(this)
         }
 
         this.testMessage = 'Sentence Test'
@@ -104,32 +105,6 @@ export default {
       setTimeout(() => {
         this.isScoreButtonActive = false
       }, 2)
-    },
-
-    getNewWord: function () {
-      var http = new XMLHttpRequest()
-      var serverResponse = ''
-      var vm = this
-
-      http.onreadystatechange = function () {
-        if (this.readyState === 4 && this.status === 200) {
-          serverResponse = JSON.parse(this.responseText)
-
-          if (serverResponse.result === 'no') {
-            vm.text = 'Error: server connection failed'
-          } else {
-            if (vm.text.length !== 0) {
-              vm.text += ' '
-            }
-            vm.text += serverResponse.result.word
-          }
-        } else if (this.readyState === 4) {
-          vm.text = 'Error: server connection failed'
-        }
-      }
-
-      http.open('POST', constants.serverURL + '/api/randomWord', true)
-      http.send()
     },
 
     handleBlankRequest: function () {
@@ -151,9 +126,74 @@ export default {
       if (this.testNo > this.totalTests) {
         this.stage = 2
         this.totalScore = this.totalScore.toFixed(2)
+        this.submitScore()
       } else {
         this.startTest(this.testType)
       }
+    },
+
+    getUser: async function () {
+      var vm = this
+      return new Promise(function (resolve, reject) {
+        let http = new XMLHttpRequest()
+        let serverResponse = ''
+
+        http.onreadystatechange = function () {
+          if (this.readyState === 4 && this.status === 200) {
+            serverResponse = JSON.parse(this.responseText)
+
+            if (serverResponse.userid === 'no') {
+              reject(new Error('Failed to grab userid from database.'))
+            } else {
+              console.log(serverResponse.userid)
+              resolve(serverResponse.userid)
+            }
+          } else if (this.readyState === 4) {
+            reject(new Error('Failed to connect to database.'))
+          }
+        }
+
+        http.open('POST', constants.serverURL + '/api/getUserId?username=' + vm.$route.params.username, true)
+        http.send()
+      })
+    },
+
+    submitScore: async function () {
+      try {
+        var userId = await this.getUser()
+        if (!userId) {
+          console.log('No user with matching username found.')
+          return
+        }
+      } catch (e) {
+        return console.log('Error in grabbing userId. Error: ', e)
+      }
+
+      console.log(userId)
+
+      var http = new XMLHttpRequest()
+      var serverResponse = ''
+
+      http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+          serverResponse = JSON.parse(this.responseText)
+
+          if (serverResponse.result === 'no') {
+            console.log('Failed to update database.')
+          } else {
+            console.log('Successfully updated TestScore table')
+          }
+        } else if (this.readyState === 4) {
+          console.log('Error: server connection failed')
+        }
+      }
+
+      var url = constants.serverURL + '/api/submitScore?testtype=' + this.testType
+      url += '&userid=' + userId
+      
+
+      //http.open('POST', , true)
+      //http.send()
     }
   }
 }

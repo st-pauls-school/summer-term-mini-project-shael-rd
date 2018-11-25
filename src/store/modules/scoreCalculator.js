@@ -3,8 +3,6 @@ function calculateScore (canvasImage, whiteTextImage, outlineImage, time) {
   var pixelError = 0
   var pixelOutline = 0
 
-  if (time === 0) return pixelCount.toFixed(2)
-
   /* console.log('canvas data length: ', canvasImage.data.length)
   console.log('canvasImage.data[0]: ', canvasImage.data[0])
   console.log('canvasImage.data[1]: ', canvasImage.data[1])
@@ -29,6 +27,8 @@ function calculateScore (canvasImage, whiteTextImage, outlineImage, time) {
   /* console.log('PixelCount: ', pixelCount)
   console.log('PixelError: ', pixelError)
   console.log('PixelOutline: ', pixelOutline) */
+
+  if (time === 0 || pixelOutline === 0 || pixelCount === 0) return pixelCount.toFixed(2)
 
   var textFillLevel = 0
   if ((pixelCount - pixelError) > pixelOutline) {

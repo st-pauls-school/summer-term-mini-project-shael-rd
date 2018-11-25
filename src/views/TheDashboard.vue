@@ -49,7 +49,7 @@
 
                 <li>
                     <router-link
-                      :to="{name: 'TheTest'}"
+                      :to="{name: 'TheTest', params: {username: this.username}}"
                       v-bind:class="['header-list-item', {link_part_active: selectedOption === 2}]"
                       v-on:click.native="selectedOption = 2"
                       tag='li'>

@@ -52,7 +52,7 @@ export default {
       if (this.userName.length === 0) {
         this.errorMessage = 'Please enter a username.'
       } else if (this.userPassword.length === 0) {
-        this.errorMessage = 'Please enter a password.'
+        this.errorMessage = ' Please enter a password.'
       } else {
         this.loginFailed = false
 
