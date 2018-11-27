@@ -28,7 +28,8 @@
                   v-bind:isRefreshDisabled="true"
                   v-on:requestNewText="handleBlankRequest"
                   v-on:returnScore="handleReturnScore"
-                  v-on:timer="handleToggleTimer"/>
+                  v-on:timer="handleToggleTimer"
+                  v-on:returnAccuracy="handleReturnAccuracy"/>
             </div>
         </div>
 
@@ -38,6 +39,7 @@
 
             <h2>Your total score: {{totalScore}}</h2>
             <h2>Your total time: {{time}}</h2>
+            <h2>Highscore: {{highscore}}</h2>
         </div>
     </div>
 </template>
@@ -64,7 +66,10 @@ export default {
       testNo: 1,
       totalTests: 0,
       isScoreButtonActive: false,
-      totalScore: 0
+      totalScore: 0,
+      totalAccuracy: 0,
+      userid: 0,
+      highscore: 0
     }
   },
 
@@ -132,6 +137,11 @@ export default {
       }
     },
 
+    handleReturnAccuracy: function (accuracy) {
+      this.totalAccuracy += Number(accuracy)
+      console.log('Accuracy: ', Number(accuracy))
+    },
+
     getUser: async function () {
       var vm = this
       return new Promise(function (resolve, reject) {
@@ -142,11 +152,11 @@ export default {
           if (this.readyState === 4 && this.status === 200) {
             serverResponse = JSON.parse(this.responseText)
 
-            if (serverResponse.userid === 'no') {
+            if (serverResponse === 'no') {
               reject(new Error('Failed to grab userid from database.'))
             } else {
-              console.log(serverResponse.userid)
               resolve(serverResponse.userid)
+              console.log(serverResponse.userid)
             }
           } else if (this.readyState === 4) {
             reject(new Error('Failed to connect to database.'))
@@ -160,16 +170,14 @@ export default {
 
     submitScore: async function () {
       try {
-        var userId = await this.getUser()
-        if (!userId) {
+        this.userid = await this.getUser()
+        if (!this.userid) {
           console.log('No user with matching username found.')
           return
         }
       } catch (e) {
         return console.log('Error in grabbing userId. Error: ', e)
       }
-
-      console.log(userId)
 
       var http = new XMLHttpRequest()
       var serverResponse = ''
@@ -181,7 +189,7 @@ export default {
           if (serverResponse.result === 'no') {
             console.log('Failed to update database.')
           } else {
-            console.log('Successfully updated TestScore table')
+            console.log('Successfully uploaded test results to database.')
           }
         } else if (this.readyState === 4) {
           console.log('Error: server connection failed')
@@ -189,11 +197,49 @@ export default {
       }
 
       var url = constants.serverURL + '/api/submitScore?testtype=' + this.testType
-      url += '&userid=' + userId
-      
+      url += '&userid=' + this.userid
+      url += '&score=' + this.totalScore
+      url += '&time=' + this.time
+      url += '&accuracy=' + (this.totalAccuracy / this.totalTests).toFixed(3)
 
-      //http.open('POST', , true)
-      //http.send()
+      http.open('POST', url, true)
+      http.send()
+
+      this.getHighscore()
+    },
+
+    getHighscore: function () {
+      var http = new XMLHttpRequest
+      var serverResponse = ''
+      var vm = this
+
+      http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+          serverResponse = JSON.parse(this.responseText)
+
+          if (serverResponse.highscore === 0) {
+            console.log('No highscore received.')
+          } else {
+            console.log('Successfully grabbed highscore: ', serverResponse.highscore, '.')
+          }
+
+          if(serverResponse.highscore > vm.totalScore) {
+            vm.highscore = serverResponse.highscore
+          } else {
+            vm.highscore = 'New highscore!'
+          }
+        } else if (this.readyState === 4) {
+          console.log('Error: server connection failed')
+        }
+      }
+
+      let url = constants.serverURL + '/api/getHighscore?userid=' + this.userid
+      url += '&testtype=' + this.testType
+
+      console.log('Client side URL: ', url)
+
+      http.open('POST', url, true)
+      http.send()
     }
   }
 }

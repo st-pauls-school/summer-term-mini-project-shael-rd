@@ -48,7 +48,8 @@ function calculateScore (canvasImage, whiteTextImage, outlineImage, time) {
   console.log('pixelsPerSecond: ', pixelsPerSecond)
   console.log('score: ', score) */
 
-  return score.toFixed(2)
+  return {score: score.toFixed(2),
+    accuracy: accuracy.toFixed(3)}
 }
 
 export default {

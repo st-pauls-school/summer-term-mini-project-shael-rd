@@ -177,10 +177,10 @@ router.post('/getUserId', (request, response) => {
     con.query(queryString, function (err, result) {
       if (err) {
         console.log('Unable to get userid from UserList table in database.')
-        response.json({userid: 'no'})
+        response.json('no')
         return
       }
-      response.json({userid: result[0]})
+      response.json(result[0])
       console.log('Closing connection...')
     })
   })
@@ -201,6 +201,52 @@ router.post('/submitScore', (request, response) => {
   queryString += parameters.accuracy + ')'
   console.log('Query String: ' + queryString)
 
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to update TestResults table in database.')
+        response.json({result: 'no'})
+        return
+      }
+      response.json({result: 'yes'})
+      console.log('Closing connection...')
+    })
+  })
+
+})
+
+router.post('/getHighscore', (request, response) => {
+  console.log('Request to grab highscore received')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+  var con = getCon()
+
+  var queryString = 'SELECT MAX(score) AS highscore FROM TestResults WHERE '
+  queryString += 'userid=' + parameters.userid
+  queryString += ' AND testtype="' + parameters.testtype + '"'
+  console.log('Query string: ', queryString)
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to get highscore from TestResults in database.')
+        response.json({highscore: 0})
+        return
+      }
+      response.json(result[0])
+      console.log('Closing connection...')
+    })
+  })
 })
 
 server.listen(port, () => console.log('Listening on port ' + port))

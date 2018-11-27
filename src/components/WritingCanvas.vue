@@ -107,9 +107,10 @@ export default {
 
         var textIMG = this.textSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
 
-        var score = scoreCalculator.calculateScore(userWritingIMG, userMistakesIMG, textIMG, this.time)
+        var scoreData = scoreCalculator.calculateScore(userWritingIMG, userMistakesIMG, textIMG, this.time)
 
-        this.$emit('returnScore', score)
+        this.$emit('returnScore', scoreData.score)
+        this.$emit('returnAccuracy', scoreData.accuracy)
       }
     }
   },
