@@ -51,7 +51,7 @@ router.post('/signup', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
@@ -63,7 +63,7 @@ router.post('/signup', (request, response) => {
       } else {
         response.json({result: 'no'})
       }
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
     })
   })
 })
@@ -84,7 +84,7 @@ router.post('/login', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
@@ -96,7 +96,7 @@ router.post('/login', (request, response) => {
       } else {
         response.json({result: 'no'})
       }
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
     })
   })
 })
@@ -117,17 +117,17 @@ router.post('/signupNewUser', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to insert values into database for signupNewUser request.')
+        console.log('Unable to insert values into database for signupNewUser request.\n')
         return
       }
       response.json({result: 'success'})
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
     })
   })
 })
@@ -144,18 +144,18 @@ router.post('/randomWord', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to get word from Words table in database.')
+        console.log('Unable to get word from Words table in database.\n')
         response.json({result: 'no'})
         return
       }
       response.json({result: result[0]})
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
     })
   })
 
@@ -170,18 +170,18 @@ router.post('/getUserId', (request, response) => {
   var queryString = 'SELECT userid FROM userlist WHERE username="' + parameters.username + '"'
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to get userid from UserList table in database.')
+        console.log('Unable to get userid from UserList table in database.\n')
         response.json('no')
         return
       }
       response.json(result[0])
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
     })
   })
 })
@@ -203,18 +203,18 @@ router.post('/submitScore', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to update TestResults table in database.')
+        console.log('Unable to update TestResults table in database.\n')
         response.json({result: 'no'})
         return
       }
       response.json({result: 'yes'})
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
     })
   })
 
@@ -233,18 +233,48 @@ router.post('/getHighscore', (request, response) => {
 
   con.connect(function (err) {
     if (err) {
-      console.log('Unable to connect to database.')
+      console.log('Unable to connect to database.\n')
       return
     }
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to get highscore from TestResults in database.')
+        console.log('Unable to get highscore from TestResults in database.\n')
         response.json({highscore: 0})
         return
       }
       response.json(result[0])
-      console.log('Closing connection...')
+      console.log('Closing connection...\n')
+    })
+  })
+})
+
+router.post('/getRecentResults', (request, response) => {
+  console.log('Request to grab recent scores received')
+  let parameters = url.parse(request.url, true).query
+  var con = getCon()
+
+  let queryString = 'SELECT * FROM ('
+  queryString += 'SELECT * FROM TestResults WHERE userid=' + parameters.userid
+  queryString += ' AND testtype="' + parameters.testtype + '" '
+  queryString += 'ORDER BY date DESC LIMIT ' + parameters.number + ') sub '
+  queryString += 'ORDER BY date ASC'
+  console.log('Query String: ', queryString)
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.\n')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to get recent test scores from TestScores table in database.\n')
+        response.json('no')
+        return
+      }
+      response.json({results: result})
+      console.log('Closing connection...\n')
     })
   })
 })

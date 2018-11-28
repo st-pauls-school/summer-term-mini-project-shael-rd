@@ -40,6 +40,7 @@
             <h2>Your total score: {{totalScore}}</h2>
             <h2>Your total time: {{time}}</h2>
             <h2>Highscore: {{highscore}}</h2>
+            <div id='chartContainer' style='width: 900px; height: 500px;'></div>
         </div>
     </div>
 </template>
@@ -151,12 +152,13 @@ export default {
         http.onreadystatechange = function () {
           if (this.readyState === 4 && this.status === 200) {
             serverResponse = JSON.parse(this.responseText)
+            console.log(serverResponse)
 
             if (serverResponse === 'no') {
               reject(new Error('Failed to grab userid from database.'))
             } else {
-              resolve(serverResponse.userid)
               console.log(serverResponse.userid)
+              resolve(serverResponse.userid)
             }
           } else if (this.readyState === 4) {
             reject(new Error('Failed to connect to database.'))
@@ -171,6 +173,7 @@ export default {
     submitScore: async function () {
       try {
         this.userid = await this.getUser()
+        console.log('UserId: ', this.userid)
         if (!this.userid) {
           console.log('No user with matching username found.')
           return
@@ -206,10 +209,55 @@ export default {
       http.send()
 
       this.getHighscore()
+      this.drawChart()
+    },
+
+    getChartData: async function () {
+      var vm = this
+      return new Promise(function (resolve, reject) {
+        let http = new XMLHttpRequest()
+        let serverResponse = ''
+
+        http.onreadystatechange = function () {
+          if (this.readyState === 4 && this.status === 200) {
+            serverResponse = JSON.parse(this.responseText)
+            console.log(serverResponse.score)
+
+            if (serverResponse === 'no') {
+              reject(new Error('Failed to grab recent results from database.'))
+            } else {
+              resolve(serverResponse)
+            }
+          } else if (this.readyState === 4) {
+            reject(new Error('Failed to connect to database.'))
+          }
+        }
+
+        let url = constants.serverURL + '/api/getRecentResults?userid=' + this.userid
+        url += '&testtype=' + vm.testType
+        url += '&number=10'
+        console.log('Local url: ', url)
+
+        http.open('POST', url, true)
+        http.send()
+      })
+    },
+
+    drawChart: async function () {
+      try {
+        var recentScores = await this.getChartData()
+        console.log(recentScores)
+        if (!recentScores[0]) {
+          console.log('No recent results found.')
+          return
+        }
+      } catch (e) {
+        return console.log('Error in grabbing test results. Error: ', e)
+      }
     },
 
     getHighscore: function () {
-      var http = new XMLHttpRequest
+      var http = new XMLHttpRequest()
       var serverResponse = ''
       var vm = this
 
@@ -223,7 +271,7 @@ export default {
             console.log('Successfully grabbed highscore: ', serverResponse.highscore, '.')
           }
 
-          if(serverResponse.highscore > vm.totalScore) {
+          if (serverResponse.highscore > vm.totalScore) {
             vm.highscore = serverResponse.highscore
           } else {
             vm.highscore = 'New highscore!'
@@ -235,8 +283,6 @@ export default {
 
       let url = constants.serverURL + '/api/getHighscore?userid=' + this.userid
       url += '&testtype=' + this.testType
-
-      console.log('Client side URL: ', url)
 
       http.open('POST', url, true)
       http.send()
