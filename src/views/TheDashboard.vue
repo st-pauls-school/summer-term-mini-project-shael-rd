@@ -75,7 +75,8 @@
             <TheSignUp @signupSuccess="onLogin" v-if="selectedOption === 1 && !hasLoggedIn"/>
             <TheInfo v-if="selectedOption === 0 && hasLoggedIn"/>
             <ThePractice v-if="selectedOption === 1 && hasLoggedIn"/>
-            <TheTest v-if="selectedOption === 2 && hasLoggedIn"/>
+            <TheTest v-if="selectedOption === 2 && hasLoggedIn"
+              v-bind:username="username"/>
             <TheStatistics v-if="selectedOption === 3 && hasLoggedIn"/>
         </div>
 

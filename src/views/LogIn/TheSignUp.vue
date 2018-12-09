@@ -155,6 +155,9 @@ export default {
   #sign-up-button:hover {
     background-color: #4CAF50;
   }
+  #sign-up-button:focus {
+    outline: none;
+  }
 
   #sign-up-failed-text {
     color: darkred;

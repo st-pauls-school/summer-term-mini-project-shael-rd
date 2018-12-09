@@ -113,6 +113,9 @@ export default {
   #login-button:hover {
     background-color: #4CAF50;
   }
+  #login-button:focus {
+    outline: none;
+  }
 
   #login-failed-text {
     color: darkred;

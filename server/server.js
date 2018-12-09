@@ -168,6 +168,8 @@ router.post('/getUserId', (request, response) => {
   var con = getCon()
 
   var queryString = 'SELECT userid FROM userlist WHERE username="' + parameters.username + '"'
+  console.log(queryString)
+
   con.connect(function (err) {
     if (err) {
       console.log('Unable to connect to database.\n')
@@ -219,6 +221,37 @@ router.post('/submitScore', (request, response) => {
   })
 
 })
+
+router.post('/submitWordScore', (request, response) => {
+  console.log('Request to submit word score received')
+  var urlParts = url.parse(request.url, true)
+  var parameters = urlParts.query
+  var con = getCon()
+
+  var queryString = 'INSERT INTO WordScore (date, word, score, userid) VALUES ('
+  queryString += 'CURRENT_TIMESTAMP, '
+  queryString += '"' + parameters.word + '", '
+  queryString += parameters.score + ', '
+  queryString += parameters.userid + ')'
+  console.log('Query String: ' + queryString)
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.\n')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to submit word to WordScore table in database.\n')
+        response.json({result: 'no'})
+        return
+      }
+      response.json({result: 'yes'})
+      console.log('Closing connection...\n')
+    })
+  })
+}),
 
 router.post('/getHighscore', (request, response) => {
   console.log('Request to grab highscore received')
