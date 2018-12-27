@@ -24,12 +24,14 @@
                 <WritingCanvas
                   v-bind:text="text"
                   v-bind:isScoreButtonActive="isScoreButtonActive"
+                  v-bind:isWordTest="testType === 'word'"
                   v-bind:time="time"
                   v-bind:isRefreshDisabled="true"
                   v-on:requestNewText="handleBlankRequest"
                   v-on:returnScore="handleReturnScore"
                   v-on:timer="handleToggleTimer"
-                  v-on:returnAccuracy="handleReturnAccuracy"/>
+                  v-on:returnAccuracy="handleReturnAccuracy"
+                  v-on:returnCanvases="handleReturnCanvases"/>
             </div>
         </div>
 
@@ -106,7 +108,9 @@ export default {
       wordData: [],
 
       graphError: '',
-      highscoreError: ''
+      highscoreError: '',
+
+      canvases: []
     }
   },
 
@@ -201,8 +205,6 @@ export default {
           }
         }
 
-        console.log('Buggy params: ', vm.username)
-
         http.open('POST', constants.serverURL + '/api/getUserId?username=' + vm.username, true)
         http.send()
       })
@@ -254,8 +256,9 @@ export default {
       http.send()
 
       this.getHighscore()
+      console.log(this.testType)
       if (this.testType === 'word') {
-        this.submitWordScores()
+        this.submitWordData()
       }
     },
 
@@ -352,10 +355,45 @@ export default {
       http.send()
     },
 
-    submitWordScores: function () {
+    getRecentWordid: async function () {
+      return new Promise(function (resolve, reject) {
+        let http = new XMLHttpRequest()
+        let serverResponse = ''
+
+        http.onreadystatechange = function () {
+          if (this.readyState === 4 && this.status === 200) {
+            serverResponse = JSON.parse(this.responseText)
+
+            if (serverResponse === 'no') {
+              reject(new Error('Failed to grab most recent wordid from database.'))
+            } else {
+              resolve(serverResponse)
+            }
+          } else if (this.readyState === 4) {
+            reject(new Error('Failed to connect to database.'))
+          }
+        }
+
+        http.open('POST', constants.serverURL + '/api/getLastWordid', true)
+        http.send()
+      })
+    },
+
+    submitWordData: async function () {
+      try {
+        var rawWordid = await this.getRecentWordid()
+        if (rawWordid.length === 0) {
+          console.log('Error: no recent wordid found.')
+          return
+        }
+      } catch (e) {
+        return console.log('Error in grabbing previous wordid. Error: ', e)
+      }
+
       for (let i = 0; i < 10; i++) {
         let http = new XMLHttpRequest()
         let serverResponse = ''
+        let wordid = rawWordid[0].id + 1 + i
 
         http.onreadystatechange = function () {
           if (this.readyState === 4 && this.status === 200) {
@@ -366,13 +404,20 @@ export default {
             }
           }
         }
-        var url = constants.serverURL + '/api/submitWordScore?word=' + this.wordData[i].word
+        var url = constants.serverURL + '/api/submitWordData?word=' + this.wordData[i].word
         url += '&score=' + this.wordData[i].score
+        url += '&wordid=' + wordid
         url += '&userid=' + this.userid
+        url += '&username=' + this.username
+        url += '&drawingSurface=' + this.canvases[i].drawingSurface
 
         http.open('POST', url, true)
         http.send()
       }
+    },
+
+    handleReturnCanvases: function (canvases) {
+      this.canvases.push({drawingSurface: canvases.drawingSurface})
     }
   }
 }

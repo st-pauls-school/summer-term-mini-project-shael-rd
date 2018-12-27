@@ -31,6 +31,7 @@
             v-bind:text="text"
             v-bind:isScoreButtonActive="isScoreButtonActive"
             v-bind:time="time"
+            v-bind:isWordTest="false"
             v-bind:isRefreshDisabled="false"
             v-on:requestNewText="changeTextType(selectedTextOption)"
             v-on:returnScore="handleReturnedScore"

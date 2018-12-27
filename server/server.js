@@ -106,6 +106,12 @@ router.post('/signupNewUser', (request, response) => {
   var urlParts = url.parse(request.url, true)
   var parameters = urlParts.query
 
+  var mkdirp = require('mkdirp')
+  mkdirp('./userIMGs/' + parameters.user, function(err) {
+    if (err) console.log('Failed to create folder for user' + parameters.user)
+    else console.log('Folder creation successful.')
+  })
+
   var con = getCon()
 
   var queryString = 'INSERT INTO UserList (username, password) VALUES ("'
@@ -133,7 +139,7 @@ router.post('/signupNewUser', (request, response) => {
 })
 
 router.post('/randomWord', (request, response) => {
-  console.log('Request to get random word recieved.')
+  console.log('Request to get random word received.')
   var urlParts = url.parse(request.url, true)
   var parameters = urlParts.query
   var con = getCon()
@@ -222,11 +228,43 @@ router.post('/submitScore', (request, response) => {
 
 })
 
-router.post('/submitWordScore', (request, response) => {
-  console.log('Request to submit word score received')
+router.post('/getLastWordid', (request, response) => {
+  console.log('Request to fetch last autoincrement wordid received')
+  var con = getCon()
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.\n')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query('SELECT Max(wordid) as id FROM WordScore', function (err, result) {
+      if (err) {
+        console.log('Unable to get wordid from wordScores in database.\n')
+        response.json('no')
+        return
+      }
+      response.json(result)
+      console.log('Closing connection...\n')
+    })
+  })
+})
+
+router.post('/submitWordData', (request, response) => {
+  console.log('Request to submit word data received')
   var urlParts = url.parse(request.url, true)
   var parameters = urlParts.query
   var con = getCon()
+
+  var fs = require('fs')
+  var path = './userIMGs/' + parameters.username + '/' + parameters.wordid + '_' + parameters.word + '.txt'
+  fs.writeFile(path, parameters.drawingSurface, function (err, data) {
+    if (err) {
+      console.log('Failed to create file: ', err)
+    } else {
+    console.log('Successfully created new file.')
+    }
+  })
 
   var queryString = 'INSERT INTO WordScore (date, word, score, userid) VALUES ('
   queryString += 'CURRENT_TIMESTAMP, '

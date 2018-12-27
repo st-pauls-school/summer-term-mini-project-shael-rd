@@ -58,7 +58,8 @@ export default {
     text: String,
     isScoreButtonActive: Boolean,
     time: Number,
-    isRefreshDisabled: Boolean
+    isRefreshDisabled: Boolean,
+    isWordTest: Boolean
   },
 
   data () {
@@ -99,6 +100,10 @@ export default {
 
     isScoreButtonActive: function (newVal, oldVal) {
       if (newVal === true) {
+        if (this.isWordTest) {
+          this.sendCanvases()
+        }
+
         var userWritingIMG = this.drawingSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
         this.writeNewText(this.text, this.drawingSurface, true, false)
 
@@ -218,6 +223,16 @@ export default {
 
     clearSurface: function () {
       this.drawingSurface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
+    },
+
+    sendCanvases: function () {
+      var returnVal = [
+        {drawingSurface: 0}
+      ]
+
+      returnVal.drawingSurface = this.drawingSurface.canvas.toDataURL('image/png')
+
+      this.$emit('returnCanvases', returnVal)
     }
   }
 }
