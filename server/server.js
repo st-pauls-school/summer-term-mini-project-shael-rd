@@ -350,4 +350,32 @@ router.post('/getRecentResults', (request, response) => {
   })
 })
 
+router.post('/getAvgScores', (request, response) => {
+  console.log('Request to return average scores received')
+  let parameters = url.parse(request.url, true).query
+  var con = getCon()
+
+  let queryString = 'SELECT AVG(time) as avg_time, AVG(score) as avg_score, AVG(accuracy) as avg_accuracy FROM testresults WHERE testType="'
+  queryString += parameters.type + '"'
+
+  console.log(queryString)
+
+  con.connect(function (err) {
+    if (err) {
+      console.log('Unable to connect to database.\n')
+      return
+    }
+    console.log('Connected to MySQL database.')
+    con.query(queryString, function (err, result) {
+      if (err) {
+        console.log('Unable to get average scores from TestScores table in database.\n')
+        response.json('no')
+        return
+      }
+      response.json(result)
+      console.log('Closing connection...\n')
+    })
+  })
+})
+
 server.listen(port, () => console.log('Listening on port ' + port))

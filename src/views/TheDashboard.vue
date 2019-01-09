@@ -59,7 +59,7 @@
 
                 <li>
                     <router-link
-                      :to="{name: 'TheStatistics'}"
+                      :to="{name: 'TheStatistics', params: {username: this.username}}"
                       v-bind:class="['header-list-item', {link_part_active: selectedOption === 3}]"
                       v-on:click.native="selectedOption = 3"
                       tag='li'>
@@ -77,7 +77,8 @@
             <ThePractice v-if="selectedOption === 1 && hasLoggedIn"/>
             <TheTest v-if="selectedOption === 2 && hasLoggedIn"
               v-bind:username="username"/>
-            <TheStatistics v-if="selectedOption === 3 && hasLoggedIn"/>
+            <TheStatistics v-if="selectedOption === 3 && hasLoggedIn"
+              v-bind:username="username"/>
         </div>
 
     </div>
