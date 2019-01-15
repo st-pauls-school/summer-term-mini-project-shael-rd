@@ -285,6 +285,7 @@ export default {
         let url = constants.serverURL + '/api/getRecentResults?userid=' + vm.userid
         url += '&testtype=' + vm.testType
         url += '&number=10'
+        url += '&table=TestResults'
 
         http.open('POST', url, true)
         http.send()

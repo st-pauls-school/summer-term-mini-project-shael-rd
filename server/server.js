@@ -326,8 +326,9 @@ router.post('/getRecentResults', (request, response) => {
   var con = getCon()
 
   let queryString = 'SELECT * FROM ('
-  queryString += 'SELECT * FROM TestResults WHERE userid=' + parameters.userid
-  queryString += ' AND testtype="' + parameters.testtype + '" '
+  queryString += 'SELECT * FROM ' + parameters.table
+  queryString += ' WHERE userid=' + parameters.userid + ' '
+  if(parameters.table === 'TestResults') queryString += 'AND testtype="' + parameters.testtype + '" '
   queryString += 'ORDER BY date DESC LIMIT ' + parameters.number + ') sub '
   queryString += 'ORDER BY date ASC'
   console.log('Query String: ', queryString)
@@ -340,7 +341,7 @@ router.post('/getRecentResults', (request, response) => {
     console.log('Connected to MySQL database.')
     con.query(queryString, function (err, result) {
       if (err) {
-        console.log('Unable to get recent test scores from TestScores table in database.\n')
+        console.log('Unable to get recent test scores from table in database.\n')
         response.json('no')
         return
       }
