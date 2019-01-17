@@ -48,10 +48,11 @@
 
         <div
           id='scrollListContainer'
-          v-if="activeButton === 1">
+          v-if="activeButton === 1 && !isWordTestEmpty">
             <ul>
                 <li
                   v-for="entry in rawData"
+                  v-bind:class="{scrollListActive: selectedScrollItem === entry[2] && selectedScrollItem !== -1}"
                   v-bind:key="entry[2]"
                   v-on:click="scrollListPressed(entry[2])">
                     {{ entry[0] }} <br> {{ entry[1]}}
@@ -60,7 +61,8 @@
         </div>
 
         <div
-          id='canvasContainer'>
+          id='canvasContainer'
+          v-show="activeButton === 1 && !isWordTestEmpty">
             <canvas
               id="drawingArea"
               v-bind:width="500"
@@ -77,6 +79,7 @@
 
 <script>
 import WritingCanvas from '@/components/WritingCanvas'
+import textWriter from '@/store/modules/writeNewText.js'
 import { GChart } from 'vue-google-charts'
 import { constants } from '@/constants.js'
 
@@ -92,7 +95,8 @@ export default {
 
   data () {
     return {
-      activeButton: 0,
+      activeButton: 1,
+      selectedScrollItem: -1,
       text: '',
       headerText: 'Alphabet Statistics',
 
@@ -115,26 +119,14 @@ export default {
       ],
       textSurface: [
         {canvas: 0, ctx: 0}
-      ]
+      ],
+      isWordTestEmpty: false
 
     }
   },
 
   mounted () {
-    this.activateButton(0)
-
-    this.drawingSurface.canvas = document.getElementById('drawingArea')
-    this.drawingSurface.ctx = this.drawingSurface.canvas.getContext('2d')
-
-    this.textSurface.canvas = document.getElementById('textArea')
-    this.textSurface.ctx = this.textSurface.canvas.getContext('2d')
-
-    this.drawingSurface.ctx.font = '75px Cookie'
-    this.textSurface.ctx.font = '75px Cookie'
-    this.textSurface.ctx.strokeStyle = 'grey'
-    this.drawingSurface.ctx.fillStyle = 'white'
-
-    this.imageToCanvas('data:image/  png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAIAAAACDbGyAAAAAXNSR0IArs4c6QAAAAlwSFlzAAALEwAACxMBAJqcGAAAAAd0SU1FB9oMCRUiMrIBQVkAAAAZdEVYdENvbW1lbnQAQ3JlYXRlZCB3aXRoIEdJTVBXgQ4XAAAADElEQVQI12NgoC4AAABQAAEiE+h1AAAAAElFTkSuQmCC')
+    this.activateButton(1)
   },
 
   methods: {
@@ -151,6 +143,17 @@ export default {
           this.headerText = 'Single Word Statistics'
           this.getNewStats('word')
           this.drawChart('word')
+
+          this.drawingSurface.canvas = document.getElementById('drawingArea')
+          this.drawingSurface.ctx = this.drawingSurface.canvas.getContext('2d')
+
+          this.textSurface.canvas = document.getElementById('textArea')
+          this.textSurface.ctx = this.textSurface.canvas.getContext('2d')
+
+          this.drawingSurface.ctx.font = '75px Cookie'
+          this.textSurface.ctx.font = '75px Cookie'
+          this.textSurface.ctx.strokeStyle = 'grey'
+          this.drawingSurface.ctx.fillStyle = 'white'
           break
         case 2:
           this.headerText = 'Sentence Statistics'
@@ -228,13 +231,16 @@ export default {
         console.log('recentScores.results.length: ', recentScores.results.length)
         if (recentScores.results.length === 0) {
           console.log('No recent results found.')
-          this.graphError = 'Error fetching previous scores.'
+          this.isWordTestEmpty = true
+          this.graphError = 'Error: no previous scores found.'
           return
         } else {
           this.graphError = ''
+          this.isWordTestEmpty = false
         }
       } catch (e) {
         this.graphError = 'Error connecting to server. Please try again later.'
+        this.isWordTestEmpty = true
         return console.log('Error in grabbing test results. Error: ', e)
       }
 
@@ -255,7 +261,7 @@ export default {
         ['Date', 'Score']
       ]
       this.rawData = [
-        ['Date', 'Score']
+        ['Date', 'Score', -1]
       ]
       for (let i = 0; i < recentScores.results.length; i++) {
         let year = recentScores.results[i].date.slice(2, 4)
@@ -305,10 +311,37 @@ export default {
     },
 
     scrollListPressed: function (event) {
-      console.log(event)
+      if (event === -1) return
+      this.selectedScrollItem = event
+
+      let http = new XMLHttpRequest()
+      let vm = this
+      let serverResponse = ''
+
+      http.onreadystatechange = function () {
+        if (this.readyState === 4 && this.status === 200) {
+          serverResponse = JSON.parse(this.responseText)
+
+          if (serverResponse === 'no') {
+            console.log('File does not exist.')
+          } else {
+            console.log('serverResponse:', serverResponse)
+            vm.imageToCanvas(serverResponse.url, serverResponse.word)
+          }
+        } else if (this.readyState === 4) {
+          console.log('Failed to grab url from database with given word id: ', event)
+        }
+      }
+      http.open('POST', constants.serverURL + '/api/getImageUrl?id=' + event.toString() + '&username=' + this.username, true)
+      http.send()
     },
 
-    imageToCanvas: function (url) {
+    imageToCanvas: function (url, word) {
+      this.drawingSurface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
+      this.textSurface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
+
+      textWriter.writeNewText(word, this.textSurface, false, true)
+
       let vm = this
       var img = new Image()
       img.onload = function () {
@@ -378,8 +411,8 @@ export default {
       cursor: pointer;
       background-color: #111;
     }
-    .scrollListContainerActive {
-      background-color: #4CAF50;
+    .scrollListActive {
+      background-color: #4CAF50 !important;
     }
     #scrollListContainer ul::-webkit-scrollbar {
       -webkit-appearance: none;
@@ -466,5 +499,6 @@ export default {
       color: darkred;
       margin-top: 10px;
       font-size: 14px;
+      margin-right: 12%;
     }
 </style>

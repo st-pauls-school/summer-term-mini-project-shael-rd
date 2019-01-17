@@ -64,11 +64,14 @@ export default {
           if (this.readyState === 4 && this.status === 200) {
             serverResponse = JSON.parse(this.responseText)
 
-            if (serverResponse.result === 'yes') {
+            if (serverResponse === 'yes') {
               vm.loginSuccess()
-            } else if (serverResponse.result === 'no') {
+            } else if (serverResponse === 'no') {
               vm.loginFailed = true
               vm.errorMessage = 'Error: invalid username or password.'
+            } else if (serverResponse === 'connect_error') {
+              vm.loginFailed = true
+              vm.errorMessage = 'Error connecting to server. Please try again later.'
             }
           } else if (this.readyState === 4) {
             vm.loginFailed = true

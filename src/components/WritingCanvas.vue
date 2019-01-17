@@ -49,6 +49,7 @@
 
 <script>
 import scoreCalculator from '@/store/modules/scoreCalculator.js'
+import textWriter from '@/store/modules/writeNewText.js'
 import {constants} from '@/constants.js'
 
 export default {
@@ -89,23 +90,23 @@ export default {
     this.textSurface.ctx.strokeStyle = 'grey'
     this.drawingSurface.ctx.fillStyle = 'white'
 
-    this.writeNewText(this.text, this.textSurface, false, true)
+    textWriter.writeNewText(this.text, this.textSurface, false, true)
   },
 
   watch: {
     text: function (newVal, oldVal) {
       this.clearSurface()
-      this.writeNewText(newVal, this.textSurface, false, true)
+      textWriter.writeNewText(newVal, this.textSurface, false, true)
     },
 
     isScoreButtonActive: function (newVal, oldVal) {
       if (newVal === true) {
         if (this.isWordTest) {
-          this.sendCanvases()
+          this.sendCanvases(this.drawingSurface.canvas.toDataURL('image/png'))
         }
 
         var userWritingIMG = this.drawingSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
-        this.writeNewText(this.text, this.drawingSurface, true, false)
+        textWriter.writeNewText(this.text, this.drawingSurface, true, false)
 
         var userMistakesIMG = this.drawingSurface.ctx.getImageData(0, 0, constants.canvasWidth, constants.canvasHeight)
         this.drawingSurface.ctx.putImageData(userWritingIMG, 0, 0)
@@ -121,38 +122,6 @@ export default {
   },
 
   methods: {
-    writeNewText: function (text, surface, isFilled, isCleared) {
-      if (isCleared) {
-        surface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
-      }
-      var words = text.split(' ')
-      var line = ''
-      var tempLine = ''
-      var lineHeight = constants.textLineSpacing
-
-      for (var i = 0; i < words.length; i++) {
-        tempLine += (words[i] + ' ')
-
-        if (surface.ctx.measureText(tempLine).width > (constants.canvasWidth - constants.textLeftIndent)) {
-          if (isFilled) {
-            surface.ctx.fillText(line, constants.textLeftIndent, lineHeight)
-          } else {
-            surface.ctx.strokeText(line, constants.textLeftIndent, lineHeight)
-          }
-          lineHeight += constants.textLineSpacing
-          tempLine = words[i] + ' '
-          line = words[i] + ' '
-        } else {
-          line = tempLine
-        }
-      }
-
-      if (isFilled) {
-        surface.ctx.fillText(line, constants.textLeftIndent, lineHeight)
-      } else {
-        surface.ctx.strokeText(line, constants.textLeftIndent, lineHeight)
-      }
-    },
 
     requestNewText: function () {
       this.$emit('requestNewText')
@@ -225,13 +194,12 @@ export default {
       this.drawingSurface.ctx.clearRect(0, 0, constants.canvasWidth, constants.canvasHeight)
     },
 
-    sendCanvases: function () {
+    sendCanvases: function (url) {
       var returnVal = [
-        {drawingSurface: 0}
+        {drawingSurface: ''}
       ]
-
-      returnVal.drawingSurface = this.drawingSurface.canvas.toDataURL('image/png')
-
+      returnVal.drawingSurface = url
+      console.log('fucked url at writing canvas: ', returnVal.drawingSurface)
       this.$emit('returnCanvases', returnVal)
     }
   }

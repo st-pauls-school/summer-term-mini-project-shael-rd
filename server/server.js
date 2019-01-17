@@ -85,6 +85,7 @@ router.post('/login', (request, response) => {
   con.connect(function (err) {
     if (err) {
       console.log('Unable to connect to database.\n')
+      response.json('connect_error')
       return
     }
     console.log('Connected to MySQL database.')
@@ -92,9 +93,9 @@ router.post('/login', (request, response) => {
       if (err) {
         console.log('Unable to find any results from the table for login request.')
       } else if (result.length > 0) {
-        response.json({result: 'yes'})
+        response.json('yes')
       } else {
-        response.json({result: 'no'})
+        response.json('no')
       }
       console.log('Closing connection...\n')
     })
@@ -256,13 +257,14 @@ router.post('/submitWordData', (request, response) => {
   var parameters = urlParts.query
   var con = getCon()
 
+  parameters.drawingSurface = parameters.drawingSurface.replace(/ /g, '+')
   var fs = require('fs')
   var path = './userIMGs/' + parameters.username + '/' + parameters.wordid + '_' + parameters.word + '.txt'
   fs.writeFile(path, parameters.drawingSurface, function (err, data) {
     if (err) {
       console.log('Failed to create file: ', err)
     } else {
-    console.log('Successfully created new file.')
+      console.log('Successfully created new file.')
     }
   })
 
@@ -377,6 +379,29 @@ router.post('/getAvgScores', (request, response) => {
       console.log('Closing connection...\n')
     })
   })
+})
+
+router.post('/getImageUrl', (request, response) => {
+  console.log('Request to return image url received')
+  let parameters = url.parse(request.url, true).query
+
+
+  var fs = require('fs')
+  var files = fs.readdirSync('./userIMGs/' + parameters.username)
+  for (var f of files) {
+    console.log(f)
+    if (f.includes(parameters.id.toString())) {
+      var returnURL = fs.readFileSync('./userIMGs/' + parameters.username + '/' + f).toString()
+      var word = f.replace(parameters.id.toString() + '_', '')
+      word = word.replace('.txt', '')
+
+      response.json({url: returnURL, word: word})
+      console.log('Successfully found file with id: ', parameters.id)
+      return
+    }
+  }
+  response.json('no')
+  console.log('Failed to find file with id: ', parameters.id)
 })
 
 server.listen(port, () => console.log('Listening on port ' + port))
